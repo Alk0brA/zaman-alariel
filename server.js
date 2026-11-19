@@ -13,7 +13,7 @@ const SECRET = process.env.SESSION_SECRET || crypto.createHash("sha256").update(
 const pool = DB_URL ? new Pool({ connectionString: DB_URL, ssl: /localhost|127\.0\.0\.1|\/tmp/.test(DB_URL) ? false : { rejectUnauthorized: false }, max: 8 }) : null;
 
 const CATS = ["tv","kids","ball","chips","video","family","school","eid","games","other"];
-const GAMES = ["hunt","hara","snake","bricks","invaders","blocks"];
+const GAMES = ["hara","hunt","maze","crossing","racer","pong","bricks","invaders","rocks","blocks","snake"];
 const MAX_PHOTO = 2 * 1024 * 1024;
 let version = Date.now();      // يتغير مع الذكريات و"أتذكرها"
 let chatRev = Date.now();      // يتغير عند حذف رسائل أو تعديل الدواوين
@@ -26,7 +26,9 @@ const DEFAULTS = {
   memoriesNeedReg: true,
   chatNeedsReg: true,
   features: { memories: true, games: true, chat: true, quiz: true, stickers: true },
-  games: { hunt: true, hara: true, snake: true, bricks: true, invaders: true, blocks: true },
+  games: Object.fromEntries(["hara","hunt","maze","crossing","racer","pong","bricks","invaders","rocks","blocks","snake"].map(g => [g, true])),
+  boards: Object.fromEntries(["hara","hunt","maze","crossing","racer","pong","bricks","invaders","rocks","blocks","snake"].map(g => [g, "public"])),
+  hallOfFame: true,
   prompts: []
 };
 let SETTINGS = JSON.parse(JSON.stringify(DEFAULTS));
@@ -109,9 +111,10 @@ function mergeSettings(base, v) {
   if (typeof v.siteTitle === "string") out.siteTitle = v.siteTitle.slice(0, 60) || base.siteTitle;
   if (typeof v.announcement === "string") out.announcement = v.announcement.slice(0, 300);
   if (Number.isFinite(+v.regDelaySec)) out.regDelaySec = Math.max(0, Math.min(3600, Math.round(+v.regDelaySec)));
-  for (const k of ["regRequired", "memoriesNeedReg", "chatNeedsReg"]) if (typeof v[k] === "boolean") out[k] = v[k];
+  for (const k of ["regRequired", "memoriesNeedReg", "chatNeedsReg", "hallOfFame"]) if (typeof v[k] === "boolean") out[k] = v[k];
   if (v.features && typeof v.features === "object") for (const k in out.features) if (typeof v.features[k] === "boolean") out.features[k] = v.features[k];
   if (v.games && typeof v.games === "object") for (const k in out.games) if (typeof v.games[k] === "boolean") out.games[k] = v.games[k];
+  if (v.boards && typeof v.boards === "object") for (const k in out.boards) if (v.boards[k] === "public" || v.boards[k] === "hidden") out.boards[k] = v.boards[k];
   if (Array.isArray(v.prompts)) out.prompts = v.prompts.filter(x => typeof x === "string").map(x => x.trim().slice(0, 200)).filter(Boolean).slice(0, 60);
   return out;
 }
@@ -353,13 +356,30 @@ async function handle(req, res) {
   if (M === "GET" && p === "/api/scores") {
     const g = url.searchParams.get("game");
     if (!GAMES.includes(g)) return send(res, 400, { error: "game" });
+    if (SETTINGS.boards[g] === "hidden") return send(res, 200, { hidden: true, top: [] });
     const r = await pool.query("select name, max(score)::int as score from scores where game=$1 group by coalesce(user_id::text, name), name order by score desc limit 10", [g]);
     return send(res, 200, { top: r.rows });
   }
   if (M === "GET" && p === "/api/scores/best") {
     const r = await pool.query("select distinct on (game) game, name, score from scores order by game, score desc");
-    const out = {}; for (const x of r.rows) out[x.game] = { name: x.name, score: x.score };
+    const out = {}; for (const x of r.rows) if (SETTINGS.boards[x.game] !== "hidden") out[x.game] = { name: x.name, score: x.score };
     return send(res, 200, { best: out });
+  }
+  if (M === "GET" && p === "/api/scores/me") {
+    const u = await userOf(req); if (!u) return send(res, 200, { mine: {} });
+    const r = await pool.query("select game, max(score)::int score, count(*)::int plays from scores where user_id=$1 group by game", [u.id]);
+    const out = {}; for (const x of r.rows) out[x.game] = { score: x.score, plays: x.plays };
+    return send(res, 200, { mine: out });
+  }
+  if (M === "GET" && p === "/api/hall") {
+    if (!SETTINGS.hallOfFame) return send(res, 200, { disabled: true, games: {} });
+    const out = {};
+    for (const g of GAMES) {
+      if (SETTINGS.boards[g] === "hidden" || SETTINGS.games[g] === false) continue;
+      const r = await pool.query("select name, max(score)::int as score from scores where game=$1 group by coalesce(user_id::text, name), name order by score desc limit 3", [g]);
+      if (r.rows.length) out[g] = r.rows;
+    }
+    return send(res, 200, { games: out });
   }
   if (M === "POST" && p === "/api/scores") {
     const u = await userOf(req);
@@ -370,8 +390,10 @@ async function handle(req, res) {
     const score = Math.floor(+b.score);
     if (!GAMES.includes(b.game) || !Number.isFinite(score) || score < 0 || score > 1000000) return send(res, 400, { error: "invalid" });
     await pool.query("insert into scores (game,user_id,name,score) values ($1,$2,$3,$4)", [b.game, u.id, displayName(u), score]);
+    const best = (await pool.query("select max(score)::int s from scores where game=$1 and user_id=$2", [b.game, u.id])).rows[0].s;
+    if (SETTINGS.boards[b.game] === "hidden") return send(res, 200, { hidden: true, best });
     const rank = await pool.query("select count(*)::int + 1 as rank from (select max(score) s from scores where game=$1 group by coalesce(user_id::text,name)) t where t.s > $2", [b.game, score]);
-    return send(res, 200, { rank: rank.rows[0].rank });
+    return send(res, 200, { rank: rank.rows[0].rank, best });
   }
 
   // ===== admin =====
@@ -478,10 +500,16 @@ async function handle(req, res) {
     if (M === "GET" && a === "/scores") {
       const out = {};
       for (const g of GAMES) {
-        const r = await pool.query("select name, max(score)::int score, count(*)::int plays from scores where game=$1 group by coalesce(user_id::text,name), name order by score desc limit 20", [g]);
+        const r = await pool.query("select coalesce(user_id::text,name) k, name, max(score)::int score, count(*)::int plays from scores where game=$1 group by coalesce(user_id::text,name), name order by score desc limit 20", [g]);
         out[g] = r.rows;
       }
       return send(res, 200, { scores: out });
+    }
+    if (M === "POST" && a === "/scores/delete") {
+      const b = await readJson(req, 1000);
+      if (!GAMES.includes(b.game) || typeof b.k !== "string") return send(res, 400, { error: "invalid" });
+      await pool.query("delete from scores where game=$1 and coalesce(user_id::text,name)=$2", [b.game, b.k.slice(0, 100)]);
+      return send(res, 200, { ok: true });
     }
     if (M === "POST" && a === "/scores/reset") {
       const b = await readJson(req, 500);

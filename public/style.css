@@ -273,3 +273,74 @@ textarea:focus,input:focus,select:focus{outline:2px solid var(--teal);outline-of
 .composer{display:flex;gap:8px;padding:8px 12px 10px;background:var(--paper2);max-width:720px;width:100%;margin:0 auto}
 .composer input{flex:1}
 .composer button{flex:none}
+
+/* ===== v3: consoles ===== */
+.dpad .hub{display:none}
+.abtn{display:flex;gap:8px;align-items:center}
+.abtn .bb,.abtn .bc{display:none}
+.gbadge{font-size:12px;font-weight:800;background:rgba(255,255,255,.12);border-radius:999px;padding:3px 10px;color:#ffe9b0}
+.gendless{color:#ffcf6b!important;font-weight:800;font-size:12.5px!important}
+.gmine{margin-top:6px;font-size:12.5px;color:#9fd8c9;font-weight:800}
+.gboard li .nm{flex:1;text-align:right;margin:0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* atari */
+.gov[data-console=atari] .gbox{background:linear-gradient(#2a1a10,#120a05)}
+.gov[data-console=atari] .gscreenwrap{border-color:#1a1a1a;box-shadow:0 0 0 2px #6b4423,0 8px 20px rgba(0,0,0,.6)}
+.gov[data-console=atari] .pad{background:repeating-linear-gradient(90deg,#6b4423 0 7px,#5c3a1d 7px 9px,#71482a 9px 15px);box-shadow:inset 0 -5px 0 #3e2612;border-radius:14px}
+.gov[data-console=atari] .dpad{border-radius:50%;background:#151515;box-shadow:0 4px 0 #000,inset 0 0 0 4px #2a2a2a}
+.gov[data-console=atari] .dpad::after{display:none}
+.gov[data-console=atari] .dpad button{background:transparent;color:#888}
+.gov[data-console=atari] .dpad .hub{display:block;position:absolute;left:46px;top:46px;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#555,#111);box-shadow:0 0 0 6px #222;pointer-events:none}
+.gov[data-console=atari] .padmid{color:#f3d9a8}
+.gov[data-console=atari] .padmid small{color:#e0c08a}
+.gov[data-console=atari] .abtn .ba{background:#d32f2f;box-shadow:0 5px 0 #7a1414,0 0 0 6px #1a1a1a}
+/* sega */
+.gov[data-console=sega] .gbox{background:linear-gradient(#0b1530,#05080f)}
+.gov[data-console=sega] .gscreenwrap{border-color:#111;box-shadow:0 0 0 2px #1b4fa0,0 8px 24px rgba(27,79,160,.45)}
+.gov[data-console=sega] .pad{background:linear-gradient(#2a2a2e,#151517);box-shadow:inset 0 -4px 0 #000,inset 0 1px 0 #444;border-radius:40px}
+.gov[data-console=sega] .dpad button,.gov[data-console=sega] .dpad::after{background:#0d0d0f;color:#555}
+.gov[data-console=sega] .padmid{color:#5fb4ff}
+.gov[data-console=sega] .padmid small{color:#8aa}
+.gov[data-console=sega] .abtn{transform:rotate(-14deg)}
+.gov[data-console=sega] .abtn button{display:block;width:46px;height:46px;font-size:16px;background:#1c1c20;color:#aaa;box-shadow:0 3px 0 #000,inset 0 0 0 2px #333}
+.gov[data-console=sega] .abtn .ba{background:#1b4fa0;color:#fff;width:54px;height:54px}
+/* brick */
+.gov[data-console=brick] .gbox{background:linear-gradient(#3a3a2c,#1d1d14)}
+.gov[data-console=brick] .gscreenwrap{border:14px solid #2d3436;border-radius:10px 10px 30px 10px;box-shadow:0 0 0 4px #e8c547}
+.gov[data-console=brick] .pad{background:#e8c547;box-shadow:inset 0 -6px 0 #b8962a;border-radius:20px 20px 46px 46px}
+.gov[data-console=brick] .dpad button{border-radius:50%!important;width:46px;height:46px;background:#2d3436;color:#888;box-shadow:0 3px 0 #111}
+.gov[data-console=brick] .dpad::after{display:none}
+.gov[data-console=brick] .padmid{color:#2d3436}
+.gov[data-console=brick] .padmid small{color:#5a4a10}
+.gov[data-console=brick] .abtn .ba{background:#2d3436;box-shadow:0 4px 0 #111}
+
+/* games shelf */
+.consoles{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:none}
+.consoles::-webkit-scrollbar{display:none}
+.consoles button{flex:none;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:8px 14px;font-weight:800;font-size:14px;color:var(--ink);display:flex;gap:6px;align-items:center}
+.consoles button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.shelf{margin-top:18px}
+.shelf-h{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;color:#fff}
+.shelf-h .e{font-size:28px}
+.shelf-h b{font-family:Lalezar;font-weight:400;font-size:22px;display:block;line-height:1.2}
+.shelf-h small{opacity:.85;font-size:12.5px}
+.shelf-h .yr{margin-inline-start:auto;font-family:Lalezar;font-size:18px;opacity:.7}
+.shelf-h[data-c=atari]{background:repeating-linear-gradient(90deg,#6b4423 0 8px,#5c3a1d 8px 10px,#71482a 10px 18px)}
+.shelf-h[data-c=family]{background:linear-gradient(90deg,#b3261e,#d84a3a)}
+.shelf-h[data-c=sega]{background:linear-gradient(90deg,#0b1530,#1b4fa0)}
+.shelf-h[data-c=brick]{background:linear-gradient(90deg,#6d7a4f,#9ead86);color:#1f2a14}
+.cart[data-c=atari] .shell{background:#1c1c1c;border-radius:6px}
+.cart[data-c=atari] .label{border-top:10px solid #8a5a2b}
+.cart[data-c=sega] .shell{background:linear-gradient(#222,#0c0c0c);border-radius:4px 4px 10px 10px}
+.cart[data-c=sega] .shell::before{background:#1b4fa0}
+.cart[data-c=brick] .shell{background:#e8c547;box-shadow:0 4px 0 #b8962a}
+.cart[data-c=brick] .label{border:4px solid #2d3436;color:#1f2a14}
+.cart[data-c=brick] .grip i{background:#b8962a}
+.hall{margin-top:14px;background:linear-gradient(160deg,#2b1d14,#4a2f1e);color:#fff;border-radius:18px;padding:14px 16px}
+.hall h3{margin:0 0 8px;font-family:Lalezar;font-weight:400;font-size:24px;color:#f2c230}
+.hall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.hall-g{background:rgba(255,255,255,.07);border-radius:12px;padding:8px 10px}
+.hall-g .t{font-weight:800;font-size:13.5px;margin-bottom:4px}
+.hall-g div.r{display:flex;justify-content:space-between;gap:6px;font-size:13px}
+.hall-g div.r span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hall-g div.r b{color:#f2c230}
+.cart .best{white-space:pre-line;line-height:1.45}

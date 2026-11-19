@@ -406,31 +406,64 @@ function setupDictation(){
 }
 
 /* ---------- games ---------- */
-async function loadBest(){try{const d=await api("/scores/best");S.best=d.best||{};renderCarts()}catch(e){}}
+S.console="all";S.mine={};
+async function loadBest(){
+  try{const [b,m]=await Promise.all([api("/scores/best"),S.me?api("/scores/me"):Promise.resolve({mine:{}})]);S.best=b.best||{};S.mine=m.mine||{};renderCarts()}catch(e){}
+  loadHall();
+}
+async function loadHall(){
+  const box=$("hall");if(!box)return;
+  try{
+    const d=await api("/hall");
+    if(d.disabled||!Object.keys(d.games||{}).length){box.classList.add("hidden");return}
+    const names={};if(typeof ZAGames!=="undefined")ZAGames.list().forEach(x=>names[x.id]=x.emoji+" "+x.name);
+    box.replaceChildren(h("h3",null,"🏆 لوحة الشرف"),h("div",{class:"hall-grid"},...Object.entries(d.games).map(([gid,rows])=>h("div",{class:"hall-g"},h("div",{class:"t",text:names[gid]||gid}),
+      ...rows.map((r,i)=>h("div",{class:"r"},h("span",{text:["🥇","🥈","🥉"][i]+" "+r.name}),h("b",null,ar(r.score))))))));
+    box.classList.remove("hidden");
+  }catch(e){box.classList.add("hidden")}
+}
 function renderCarts(){
-  const box=$("carts");if(!box||typeof ZAGames==="undefined")return;box.replaceChildren();
-  const en=(S.settings&&S.settings.games)||{};
+  const tabs=$("consoleTabs"),shelves=$("shelves");if(!tabs||typeof ZAGames==="undefined")return;
+  const en=(S.settings&&S.settings.games)||{},C=ZAGames.consoles();
   const list=ZAGames.list().filter(g=>en[g.id]!==false);
-  if(!list.length){box.append(h("div",{class:"empty",style:"grid-column:1/-1"},h("div",{class:"big"},"🕹️"),h("h3",{text:"الصالة مقفلة حالياً"})));return}
-  for(const gm of list){
-    const b=S.best[gm.id];
-    box.append(h("button",{class:"cart",onclick:()=>ZAGames.open(gm.id),"aria-label":"العب "+gm.name},
-      h("div",{class:"shell"},h("div",{class:"label",style:"background:"+gm.color},
-        h("div",{class:"em"},gm.emoji),h("div",{class:"nm",text:gm.name}),
-        h("div",{class:"best",text:b?("🏆 "+b.name+" — "+ar(b.score)):"🏆 ما أحد سجّل للحين"})),
-        h("div",{class:"grip"},h("i"),h("i"),h("i"),h("i"),h("i")))));
+  tabs.replaceChildren(h("button",{class:S.console==="all"?"on":"",onclick:()=>{S.console="all";renderCarts()}},"🎛️ كل الأجهزة"),
+    ...Object.entries(C).filter(([k])=>list.some(g=>g.console===k)).map(([k,c])=>h("button",{class:S.console===k?"on":"",onclick:()=>{S.console=k;renderCarts()}},c.emoji+" "+c.name)));
+  shelves.replaceChildren();
+  if(!list.length){shelves.append(h("div",{class:"empty"},h("div",{class:"big"},"🕹️"),h("h3",{text:"الصالة مقفلة حالياً"})));return}
+  for(const [k,c] of Object.entries(C)){
+    if(S.console!=="all"&&S.console!==k)continue;
+    const games=list.filter(g=>g.console===k);if(!games.length)continue;
+    const grid=h("div",{class:"carts"});
+    for(const gm of games){
+      const b=S.best[gm.id],mine=S.mine[gm.id];
+      grid.append(h("button",{class:"cart","data-c":k,onclick:()=>ZAGames.open(gm.id),"aria-label":"العب "+gm.name},
+        h("div",{class:"shell"},h("div",{class:"label",style:"background:"+gm.color},
+          h("div",{class:"em"},gm.emoji),h("div",{class:"nm",text:gm.name}),
+          h("div",{class:"best",text:(b?("🏆 "+b.name+" — "+ar(b.score)):"🏆 ما أحد سجّل للحين")+(mine?("\n⭐ أفضلك: "+ar(mine.score)):"")})),
+          h("div",{class:"grip"},h("i"),h("i"),h("i"),h("i"),h("i")))));
+    }
+    shelves.append(h("section",{class:"shelf"},h("div",{class:"shelf-h","data-c":k},h("span",{class:"e"},c.emoji),h("div",null,h("b",{text:c.name}),h("small",{text:c.sub})),h("span",{class:"yr"},c.year)),grid));
   }
 }
 if(typeof ZAGames!=="undefined"){
+  ZAGames.setBoard(async id=>{
+    const [d,m]=await Promise.all([api("/scores?game="+id),S.me?api("/scores/me"):Promise.resolve({mine:{}})]);
+    const mine=m.mine&&m.mine[id]?ar(m.mine[id].score):null;
+    return{hidden:!!d.hidden,top:(d.top||[]).map(x=>({name:x.name,score:ar(x.score)})),mine};
+  });
   ZAGames.onStart(id=>{const gk=Object.assign({},S.stats.gameKinds||{});gk[id]=1;saveStats({games:(+(S.stats.games||0))+1,gameKinds:gk})});
   ZAGames.onEnd(async(id,score)=>{
     if(!(score>0))return null;
     if(!S.me){
-      const ok=await needReg("سجّل اسمك عشان تنحفظ نتيجتك ("+score+") في لوحة الأبطال!");
+      const ok=await needReg("سجّل اسمك عشان تنحفظ نتيجتك ("+ar(score)+") في لوحة الأبطال!");
       if(!ok)return{message:"سجّل دخولك المرة الجاية عشان تنحفظ نتيجتك"};
     }
-    try{const d=await api("/scores",{body:{game:id,score}});loadBest();return{message:d.rank===1?"🥇 أنت الأول في لوحة الأبطال!":"ترتيبك #"+d.rank+" في لوحة الأبطال"}}
-    catch(e){if(e.code==="auth"){setMe(null)}return{message:"ما انحفظت النتيجة"}}
+    try{
+      const d=await api("/scores",{body:{game:id,score}});loadBest();
+      if(d.hidden)return{message:"🤫 انحفظت نتيجتك — لوحة الأبطال سرية وبتنعلن لاحقاً"+(d.best>score?" · أفضلك "+ar(d.best):"")};
+      const pb=d.best!=null&&score>=d.best?" · رقم شخصي جديد! ⭐":"";
+      return{message:(d.rank===1?"🥇 أنت الأول في لوحة الأبطال!":"ترتيبك #"+ar(d.rank)+" في لوحة الأبطال")+pb};
+    }catch(e){if(e.code==="auth"){setMe(null)}return{message:"ما انحفظت النتيجة"}}
   });
 }
 

@@ -164,7 +164,9 @@ td.ltr{direction:ltr;text-align:left}
     </section>
 
     <section data-sec="games" class="hidden">
-      <h2>الألعاب</h2><p class="sub">فعّل أو أوقف أي لعبة، وشوف لوحة الأبطال، وصفّر النتائج.</p>
+      <h2>الألعاب</h2><p class="sub">فعّل أو أوقف أي لعبة، واختار تكون لوحة أبطالها علنية للكل أو سرية (أنت بس تشوفها هنا)، واحذف أي نتيجة مشبوهة.</p>
+      <div class="panel"><label class="switch"><input type="checkbox" id="hallOn"> إظهار (لوحة الشرف) في صالة الألعاب — أول ٣ في كل لعبة علنية</label>
+        <div class="toolbar" style="margin:8px 0 0"><button class="btn sec sm" id="allPublic">كل اللوحات علنية</button><button class="btn sec sm" id="allHidden">كل اللوحات سرية 🤫</button></div></div>
       <div class="games-ad" id="gamesAd"></div>
       <div style="margin-top:14px"><button class="btn red" id="resetAll">تصفير كل النتائج</button></div>
     </section>
@@ -200,7 +202,8 @@ td.ltr{direction:ltr;text-align:left}
 
 <script>
 "use strict";
-const GAME_NAMES={hara:"🏃 مغامرة الحارة",hunt:"🦆 قنص الطيور",blocks:"🟫 الطوب المتساقط",snake:"🐍 الثعبان",bricks:"🧱 تكسير الطوب",invaders:"👾 حرب الفضاء"};
+const GAME_NAMES={hara:"🏃 مغامرة الحارة",hunt:"🦆 قنص الطيور",maze:"😮 متاهة أبو فم",crossing:"🦎 عبور الضب",racer:"🏎️ سباق الطريق",pong:"🏓 تنس الطاولة",bricks:"🧱 تكسير الطوب",invaders:"👾 حرب الفضاء",rocks:"☄️ صخور الفضاء",blocks:"🟫 الطوب المتساقط",snake:"🐍 الثعبان"};
+const GAME_CONSOLE={hara:"🎮 كمبيوتر العائلة",hunt:"🎮 كمبيوتر العائلة",maze:"🎮 كمبيوتر العائلة",crossing:"🔵 السيقا",racer:"🔵 السيقا",pong:"🕹️ الأتاري",bricks:"🕹️ الأتاري",invaders:"🕹️ الأتاري",rocks:"🕹️ الأتاري",blocks:"🧱 جهاز الطوب",snake:"🧱 جهاز الطوب"};
 const $=id=>document.getElementById(id);
 let TOKEN="";try{TOKEN=sessionStorage.getItem("za_admin")||""}catch(e){}
 let SETTINGS=null,USERS=[],MEMS=[];
@@ -326,18 +329,27 @@ async function loadMsgs(){
 $("msgRoom").addEventListener("change",loadMsgs);$("msgReload").addEventListener("click",loadMsgs);
 
 /* games */
+async function saveGames(patch,msg){const r=await api("/settings",patch);SETTINGS=r.settings;if(msg)toast(msg)}
 async function loadGames(){
   const [s,sc]=await Promise.all([api("/settings"),api("/scores")]);SETTINGS=s.settings;
+  $("hallOn").checked=SETTINGS.hallOfFame!==false;
   const box=$("gamesAd");box.replaceChildren();
   for(const id of Object.keys(GAME_NAMES)){
     const on=h("input",{type:"checkbox"});on.checked=SETTINGS.games[id]!==false;
-    on.addEventListener("change",async()=>{const g=Object.assign({},SETTINGS.games);g[id]=on.checked;const r=await api("/settings",{games:g});SETTINGS=r.settings;toast(on.checked?"اللعبة مفعّلة":"اللعبة موقفة")});
+    on.addEventListener("change",()=>{const g=Object.assign({},SETTINGS.games);g[id]=on.checked;saveGames({games:g},on.checked?"اللعبة مفعّلة":"اللعبة موقفة")});
+    const vis=h("select",null,h("option",{value:"public"},"👁️ لوحة الأبطال علنية"),h("option",{value:"hidden"},"🤫 لوحة الأبطال سرية"));vis.value=(SETTINGS.boards||{})[id]||"public";
+    vis.addEventListener("change",()=>{const b=Object.assign({},SETTINGS.boards);b[id]=vis.value;saveGames({boards:b},vis.value==="hidden"?"صارت سرية — اللاعبين ما يشوفون النتائج":"صارت علنية")});
     const top=sc.scores[id]||[];
-    box.append(h("div",{class:"panel"},h("h3",null,GAME_NAMES[id]),h("label",{class:"switch"},on,"مفعّلة للزوار"),
-      top.length?h("ol",null,...top.slice(0,10).map(x=>h("li",null,h("span",{text:x.name}),h("b",null,ar(x.score))))):h("div",{class:"empty",style:"padding:10px"},"ما فيه نتائج"),
+    const ol=top.length?h("ol",null,...top.map(x=>h("li",null,h("span",{text:x.name}),h("span",{style:"display:flex;gap:6px;align-items:center"},h("b",null,ar(x.score)),
+      h("button",{class:"btn sm sec",style:"padding:2px 7px",title:"حذف نتائج هذا اللاعب في هذي اللعبة",onclick:e=>confirmBtn(e.currentTarget,"✕",async()=>{await api("/scores/delete",{game:id,k:x.k});toast("انحذفت");loadGames()})},"✕"))))):h("div",{class:"empty",style:"padding:10px"},"ما فيه نتائج");
+    box.append(h("div",{class:"panel"},h("h3",null,GAME_NAMES[id]),h("div",{class:"sub",style:"margin:-8px 0 8px"},GAME_CONSOLE[id]),
+      h("label",{class:"switch"},on,"مفعّلة للزوار"),vis,h("div",{style:"margin-top:10px"},ol),
       h("button",{class:"btn sm sec",style:"margin-top:10px",onclick:e=>confirmBtn(e.currentTarget,"تصفير النتائج",async()=>{await api("/scores/reset",{game:id});toast("تصفرت");loadGames()})},"تصفير النتائج")));
   }
 }
+$("hallOn").addEventListener("change",()=>saveGames({hallOfFame:$("hallOn").checked},$("hallOn").checked?"لوحة الشرف ظاهرة":"لوحة الشرف مخفية"));
+$("allPublic").addEventListener("click",async()=>{const b={};Object.keys(GAME_NAMES).forEach(k=>b[k]="public");await saveGames({boards:b},"كل اللوحات علنية");loadGames()});
+$("allHidden").addEventListener("click",async()=>{const b={};Object.keys(GAME_NAMES).forEach(k=>b[k]="hidden");await saveGames({boards:b},"كل اللوحات سرية 🤫");loadGames()});
 $("resetAll").addEventListener("click",e=>confirmBtn(e.currentTarget,"تصفير كل النتائج",async()=>{await api("/scores/reset",{game:"all"});toast("تصفرت كل النتائج");loadGames()}));
 
 /* settings */
