@@ -118,6 +118,7 @@ td.ltr{direction:ltr;text-align:left}
       <button data-s="overview" class="on">📊 نظرة عامة</button>
       <button data-s="users">👥 المستخدمون</button>
       <button data-s="memories">📺 الذكريات</button>
+      <button data-s="events">📅 الخط الزمني</button>
       <button data-s="chat">💬 الدواوين</button>
       <button data-s="games">🕹️ الألعاب</button>
       <button data-s="settings">⚙️ الإعدادات</button>
@@ -148,8 +149,23 @@ td.ltr{direction:ltr;text-align:left}
 
     <section data-sec="memories" class="hidden">
       <h2>الذكريات</h2><p class="sub">راجع الذكريات المنشورة واحذف أي شي غير لائق.</p>
+      <div class="panel"><h3>➕ ذكرى من أرشيف المنصة</h3>
+        <p class="sub" style="margin-top:-6px">تظهر للزوار بشارة «من أرشيف المنصة» عشان يعرفون إنها من الإدارة.</p>
+        <div class="grid2"><div class="field"><label>العنوان</label><input id="omTitle" maxlength="70"></div>
+          <div class="field" style="display:flex;gap:8px"><div style="flex:1"><label>التصنيف</label><select id="omCat"><option value="tv">📡 التلفزيون</option><option value="kids">🧸 برامج الأطفال</option><option value="ball">⚽ الكورة</option><option value="chips">🍟 الشبسات</option><option value="video">📼 الفيديو والكستات</option><option value="family">🏠 العائلة</option><option value="school">🎒 المدرسة</option><option value="eid">🌙 رمضان والعيد</option><option value="games">🕹️ الألعاب</option><option value="other">✨ أخرى</option></select></div><div style="width:110px"><label>السنة</label><input id="omYear" type="number" min="1970" max="2015"></div></div></div>
+        <div class="field"><label>النص</label><textarea id="omText" maxlength="3000" style="min-height:90px"></textarea></div>
+        <button class="btn" id="omAdd">نشر في الأرشيف</button></div>
       <div class="toolbar"><input type="search" id="mq" placeholder="بحث في الذكريات…"></div>
       <div class="list" id="mList"></div>
+    </section>
+
+    <section data-sec="events" class="hidden">
+      <h2>الخط الزمني</h2><p class="sub">أحداث تظهر في الخط الزمني وفي بطاقة «من ذاك الزمن» في صفحة الذكريات.</p>
+      <div class="panel"><h3>➕ حدث جديد</h3>
+        <div class="room-row" style="grid-template-columns:90px 70px 1.2fr 2fr auto;background:#faf6ef">
+          <input id="evYear" type="number" placeholder="السنة" min="1960" max="2030"><input id="evEmoji" placeholder="📅" maxlength="8"><input id="evTitle" placeholder="عنوان الحدث" maxlength="80"><input class="desc" id="evBody" placeholder="تفاصيل قصيرة" maxlength="300"><button class="btn" id="evAdd">إضافة</button>
+        </div></div>
+      <div class="list" id="evList"></div>
     </section>
 
     <section data-sec="chat" class="hidden">
@@ -243,7 +259,7 @@ function go(s){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.s===s));
   document.querySelectorAll("main section").forEach(x=>x.classList.toggle("hidden",x.dataset.sec!==s));
   $("side").classList.remove("open");$("scrim").classList.remove("show");
-  ({overview:loadOverview,users:loadUsers,memories:loadMems,chat:loadChat,games:loadGames,settings:loadSettings})[s]();
+  ({overview:loadOverview,users:loadUsers,memories:loadMems,events:loadEvents,chat:loadChat,games:loadGames,settings:loadSettings})[s]();
 }
 document.querySelectorAll("#nav button").forEach(b=>b.addEventListener("click",()=>go(b.dataset.s)));
 $("menuBtn").addEventListener("click",()=>{$("side").classList.add("open");$("scrim").classList.add("show")});
@@ -274,10 +290,16 @@ function renderUsers(){
   for(const u of USERS){
     const ban=h("button",{class:"btn sm "+(u.banned?"sec":"red"),onclick:async()=>{await api("/users/"+u.id+"/ban",{banned:!u.banned});u.banned=!u.banned;renderUsers();toast(u.banned?"انوقف الحساب":"انفك الإيقاف")}},u.banned?"فك الإيقاف":"إيقاف");
     const del=h("button",{class:"btn sm sec",onclick:e=>confirmBtn(e.currentTarget,"حذف",async()=>{await api("/users/"+u.id+"/delete",{});USERS=USERS.filter(x=>x.id!==u.id);renderUsers();toast("انحذف المستخدم وبياناته")})},"حذف");
+    const edit=h("button",{class:"btn sm sec",onclick:e=>{
+      const tr=e.currentTarget.closest("tr");const n=h("input",{value:u.name,maxlength:"40",style:"min-width:120px"}),nk=h("input",{value:u.nickname||"",maxlength:"30",placeholder:"مستعار",style:"min-width:100px"});
+      const sr=h("select",null,h("option",{value:"real"},"يظهر الحقيقي"),h("option",{value:"nick"},"يظهر المستعار"));sr.value=u.show_real||!u.nickname?"real":"nick";
+      tr.children[0].replaceChildren(n);tr.children[1].replaceChildren(nk,sr);
+      e.currentTarget.replaceWith(h("button",{class:"btn sm",onclick:async()=>{try{await api("/users/"+u.id+"/edit",{name:n.value.trim(),nickname:nk.value.trim(),showReal:sr.value==="real"});u.name=n.value.trim();u.nickname=nk.value.trim();u.show_real=sr.value==="real";renderUsers();toast("انحفظ الاسم وتحدّث في كل مشاركاته")}catch(x){toast("تعذّر الحفظ")}}},"حفظ"));
+    }},"تعديل");
     b.append(h("tr",null,h("td",{text:u.name}),h("td",{text:u.nickname||"—"}),h("td",{class:"ltr",text:u.email}),h("td",{class:"ltr",text:u.phone||"—"}),
       h("td",null,h("span",{class:"badge "+(u.marketing?"ok":"")},u.marketing?"نعم":"لا")),h("td",{text:dt(u.created_at)}),h("td",{text:dt(u.last_seen)}),
       h("td",{text:"📺"+u.memories+" · 💬"+u.messages+" · 🕹️"+u.plays}),h("td",null,h("span",{class:"badge "+(u.banned?"no":"ok")},u.banned?"موقوف":"نشط")),
-      h("td",null,h("div",{style:"display:flex;gap:4px"},ban,del))));
+      h("td",null,h("div",{style:"display:flex;gap:4px"},edit,ban,del))));
   }
 }
 $("uSearch").addEventListener("click",loadUsers);$("uq").addEventListener("keydown",e=>{if(e.key==="Enter")loadUsers()});$("uMk").addEventListener("change",loadUsers);
@@ -294,10 +316,27 @@ function renderMems(){
   if(!arr.length){list.append(h("div",{class:"empty"},"ما فيه ذكريات"));return}
   for(const m of arr)list.append(h("div",{class:"item"},m.photo?h("img",{src:m.photo,alt:""}):null,
     h("div",{class:"body"},h("b",{text:m.title||"(بدون عنوان)"}),h("div",{class:"txt",text:m.text}),
-      h("div",{class:"meta",text:"✍️ "+m.author_name+(m.email?" ("+m.email+")":"")+" · "+(m.year||"بدون سنة")+" · 📺 "+m.remembers+" يتذكرونها · "+dt(m.created_at)})),
+      h("div",{class:"meta",text:(m.official?"📺 أرشيف · ":"")+"✍️ "+m.author_name+(m.email?" ("+m.email+")":"")+" · "+(m.year||"بدون سنة")+" · 📺 "+m.remembers+" يتذكرونها · "+dt(m.created_at)})),
     h("button",{class:"btn sm red",onclick:e=>confirmBtn(e.currentTarget,"حذف",async()=>{await api("/memories/"+m.id+"/delete",{});MEMS=MEMS.filter(x=>x.id!==m.id);renderMems();toast("انحذفت")})},"حذف")));
 }
 $("mq").addEventListener("input",renderMems);
+$("omAdd").addEventListener("click",async()=>{
+  const text=$("omText").value.trim();if(text.length<5){toast("اكتب نص الذكرى");return}
+  try{await api("/memories",{title:$("omTitle").value.trim(),text,cat:$("omCat").value,year:$("omYear").value});["omTitle","omText","omYear"].forEach(i=>$(i).value="");toast("انضافت للأرشيف");loadMems()}catch(e){toast("تعذّر النشر")}
+});
+
+/* events */
+async function loadEvents(){
+  const d=await api("/events");const list=$("evList");list.replaceChildren();
+  if(!d.events.length){list.append(h("div",{class:"empty"},"ما فيه أحداث"));return}
+  for(const e of d.events)list.append(h("div",{class:"item"},h("div",{style:"font-family:Lalezar;font-size:24px;width:56px;flex:none"},String(e.year)),h("div",{style:"font-size:24px"},e.emoji),
+    h("div",{class:"body"},h("b",{text:e.title}),e.body?h("div",{class:"txt",text:e.body}):null),
+    h("button",{class:"btn sm red",onclick:ev=>confirmBtn(ev.currentTarget,"حذف",async()=>{await api("/events/"+e.id+"/delete",{});toast("انحذف");loadEvents()})},"حذف")));
+}
+$("evAdd").addEventListener("click",async()=>{
+  const year=$("evYear").value,title=$("evTitle").value.trim();if(!year||!title){toast("اكتب السنة والعنوان");return}
+  try{await api("/events",{year,title,emoji:$("evEmoji").value.trim(),body:$("evBody").value.trim()});["evYear","evTitle","evEmoji","evBody"].forEach(i=>$(i).value="");toast("انضاف");loadEvents()}catch(e){toast("تعذّر الإضافة")}
+});
 
 /* chat */
 let ROOMS=[];

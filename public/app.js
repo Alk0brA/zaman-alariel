@@ -63,7 +63,7 @@ const DEV=(()=>{let d=LS.get("za_dev",null);if(typeof d!=="string"||!/^[A-Za-z0-
 
 const S={token:LS.get("za_token",""),me:null,settings:null,mems:[],rems:[],stats:LS.get("za_stats",{}),loaded:false,tab:"feed",fCat:"all",fDec:"all",fYear:null,sort:"new",
   promptI:0,answering:null,cat:"other",file:null,listening:false,busy:{},delArm:null,prevUnlocked:null,q:null,lastV:null,
-  regResolve:null,regTimer:null,room:null,lastMsgId:0,chatRev:null,chatTimer:null,roomsTimer:null,best:{}};
+  regResolve:null,regTimer:null,events:[],evI:0,room:null,lastMsgId:0,chatRev:null,chatTimer:null,roomsTimer:null,best:{}};
 
 const $=id=>document.getElementById(id);
 function h(tag,attrs,...kids){const el=document.createElement(tag);if(attrs)for(const k in attrs){const v=attrs[k];if(v==null||v===false)continue;if(k==="class")el.className=v;else if(k==="text")el.textContent=v;else if(k.startsWith("on"))el.addEventListener(k.slice(2),v);else el.setAttribute(k,v===true?"":v)}for(const c of kids.flat()){if(c==null||c===false)continue;el.append(c.nodeType?c:document.createTextNode(String(c)))}return el}
@@ -73,7 +73,7 @@ function note(msg){const n=$("note");n.textContent=msg||"";n.classList.toggle("s
 const rtf=(()=>{try{return new Intl.RelativeTimeFormat("ar",{numeric:"auto"})}catch(e){return null}})();
 function ago(ts){if(!ts||!rtf)return"";const s=(ts-Date.now())/1000;const a=Math.abs(s);if(a<60)return"الحين";if(a<3600)return rtf.format(Math.round(s/60),"minute");if(a<86400)return rtf.format(Math.round(s/3600),"hour");return rtf.format(Math.round(s/86400),"day")}
 function hhmm(ts){try{return new Date(ts).toLocaleTimeString("ar-SA",{hour:"numeric",minute:"2-digit"})}catch(e){return""}}
-function nameOf(m){if(m.author===DEV)return"أنت";return m.authorName||"واحد من الجيل"}
+function nameOf(m){if(m.official)return m.authorName||"أرشيف زمن الأريل";if(m.author===DEV)return"أنت";return m.authorName||"واحد من الجيل"}
 function saveStats(patch){S.stats=Object.assign({},S.stats,patch);LS.set("za_stats",S.stats);renderStickers()}
 function prompts(){const p=S.settings&&S.settings.prompts;return p&&p.length?p:PROMPTS}
 
@@ -110,6 +110,7 @@ function writeErr(e){
     applySettings();
   }catch(e){note("المنصة ما تستجيب الحين… حدّث الصفحة بعد شوي (أول تشغيل ممكن ياخذ دقيقة).");}
   await refresh();
+  loadEvents();
   setInterval(pollV,4000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
   loadBest();
@@ -219,7 +220,7 @@ function myStats(){
     gave:S.rems.filter(r=>r.u===DEV).length,got,bestOne:best,quiz:+(S.stats.quizBest||0),night:!!S.stats.night,
     games:+(S.stats.games||0),gameKinds:Object.keys(gk).length,chat:+(S.stats.chat||0)}
 }
-function renderAll(){renderCounters();renderFeed();renderTimeline();renderStickers()}
+function renderAll(){renderCounters();renderFeed();renderTimeline();renderStickers();renderEventCard()}
 function renderCounters(){
   $("cMem").textContent=ar(S.mems.length);$("cRem").textContent=ar(S.rems.length);
   const ppl=new Set([...S.mems.map(m=>m.author),...S.rems.map(r=>r.u)].filter(Boolean));$("cPpl").textContent=ar(ppl.size);
@@ -261,8 +262,8 @@ function card(m,count){
     own?("👥 "+ar(count)+" يتذكرونها"):((on?"✓ أتذكرها":"📺 أتذكرها")+(count?" · "+ar(count):"")));
   const del=tokens()[m.id]?h("button",{class:"del"+(S.delArm===m.id?" sure":""),onclick:()=>delMem(m)},S.delArm===m.id?"متأكد؟ احذف":"حذف"):null;
   const ph=safePhoto(m.photo);
-  return h("article",{class:"card"},
-    h("div",{class:"top"},h("span",{class:"tag"},c.e+" "+c.n),m.year?h("span",{class:"tag year"},String(m.year)):null,m.city?h("span",{class:"tag city"},"📍 "+m.city):null),
+  return h("article",{class:"card"+(m.official?" official":"")},
+    h("div",{class:"top"},m.official?h("span",{class:"tag offtag"},"📺 من أرشيف المنصة"):null,h("span",{class:"tag"},c.e+" "+c.n),m.year?h("span",{class:"tag year"},String(m.year)):null,m.city?h("span",{class:"tag city"},"📍 "+m.city):null),
     m.prompt?h("div",{class:"ans"},"جواب على: "+m.prompt):null,
     m.title?h("h3",{text:m.title}):null,
     h("p",{class:"txt",text:m.text||""}),
@@ -270,16 +271,33 @@ function card(m,count){
     h("div",{class:"foot"},h("div",{class:"who"},h("b",{text:nameOf(m)})," · "+ago(m.createdAt),del?" ":null,del),remBtn)
   )
 }
+async function loadEvents(){try{const d=await api("/events");S.events=d.events||[];S.evI=Math.floor(Math.random()*Math.max(1,S.events.length));renderEventCard();renderTimeline()}catch(e){}}
+function renderEventCard(){
+  const box=$("evCard");if(!box)return;
+  if(!S.events.length){box.classList.add("hidden");return}
+  const e=S.events[S.evI%S.events.length];
+  const yrMems=S.mems.filter(m=>m.year===e.year).length;
+  box.replaceChildren(h("div",{class:"evlbl"},"📅 من ذاك الزمن"),
+    h("div",{class:"evrow"},h("span",{class:"evyear"},String(e.year)),h("span",{class:"evemo"},e.emoji||"📅"),h("div",null,h("b",{text:e.title}),e.body?h("p",{text:e.body}):null)),
+    h("div",{class:"row"},h("button",{class:"btn ghost",onclick:()=>{S.evI++;renderEventCard()}},"حدث ثاني ↻"),
+      h("button",{class:"btn ghost",onclick:()=>{S.fYear=e.year;S.fCat="all";renderFilters();renderFeed();document.getElementById("feed").scrollIntoView({behavior:"smooth"})}},yrMems?("ذكريات "+e.year+" ("+ar(yrMems)+")"):"شارك ذكرى من "+e.year),
+      h("button",{class:"btn ghost",onclick:()=>{switchTab("time");window.scrollTo({top:0})}},"الخط الزمني")));
+  box.classList.remove("hidden");
+}
 function renderTimeline(){
   const box=$("timeline");box.replaceChildren();
   const by={};let none=0;for(const m of S.mems){if(m.year)by[m.year]=(by[m.year]||0)+1;else none++}
-  const years=Object.keys(by).map(Number).sort((a,b)=>a-b);
+  const evBy={};for(const e of S.events){(evBy[e.year]=evBy[e.year]||[]).push(e)}
+  const years=[...new Set([...Object.keys(by),...Object.keys(evBy)].map(Number))].sort((a,b)=>a-b);
   if(!years.length&&!none){box.append(h("div",{class:"empty"},h("div",{class:"big"},"📅"),h("h3",{text:"الخط الزمني فاضي"}),h("p",{text:"حدد السنة لما تضيف ذكرى، وبتطلع هنا."})));return}
   const max=Math.max(1,...Object.values(by),none);let lastDec=null;let tl=null;
+  const decName=d=>d===1970?"السبعينات":d===1980?"الثمانينات":d===1990?"التسعينات":d===2000?"الألفينات":"عقد "+d;
   for(const y of years){
     const d=Math.floor(y/10)*10;
-    if(d!==lastDec){lastDec=d;box.append(h("div",{class:"dec"},d===1980?"الثمانينات":d===1990?"التسعينات":d===2000?"الألفينات":d===1970?"السبعينات":"عقد "+d));tl=h("div",{class:"tl"});box.append(tl)}
-    tl.append(yearRow(y,by[y],max));
+    if(d!==lastDec){lastDec=d;box.append(h("div",{class:"dec"},decName(d)));tl=h("div",{class:"tl"});box.append(tl)}
+    if(by[y])tl.append(yearRow(y,by[y],max));
+    else tl.append(h("div",{class:"tly tly-ev"},h("span",{class:"y"},String(y)),h("span",{class:"n",style:"width:auto;color:var(--muted)"},"شارك أول ذكرى من هالسنة"),h("button",{class:"chip",onclick:()=>openComposer(null).then(()=>{try{$("fYear").value=String(y)}catch(e){}})},"＋ ذكرى")));
+    for(const e of (evBy[y]||[]))tl.append(h("div",{class:"tlev"},h("span",{class:"e"},e.emoji||"📅"),h("div",null,h("b",{text:e.title}),e.body?h("p",{text:e.body}):null)));
   }
   if(none){box.append(h("div",{class:"dec"},"بدون سنة"));const t=h("div",{class:"tl"});t.append(yearRow("none",none,max));box.append(t)}
 }

@@ -33,6 +33,48 @@ const DEFAULTS = {
 };
 let SETTINGS = JSON.parse(JSON.stringify(DEFAULTS));
 
+const OFFICIAL_NAME = "أرشيف زمن الأريل";
+const SEED_MEMORIES = [
+  ["tv", 1988, "معركة الأريل فوق السطح", "واحد فوق السطح يلف الأريل، وواحد عند الدرج يوصل الكلام، وواحد قدام التلفزيون يصرخ: «خلاص! لا لا رجعها شوي!». وأول ما تصفى الصورة يهب هوا وترجع النمنمة 😂"],
+  ["tv", 1990, "نهاية الإرسال", "بعد منتصف الليل يطلع النشيد، وبعده شاشة الألوان وصوت الصفير. وقتها تعرف إن السهرة خلصت وإن الحين وقت النوم."],
+  ["kids", 1987, "بابا فرحان والعصرية", "العصر كان له طعم ثاني: نرجع من المدرسة، ونتغدى، ونتسابق على أقرب مكان للتلفزيون عشان برنامج الأطفال. ومحد يكلّمك وقت البرنامج 📺"],
+  ["kids", 1989, "أبو الحروف", "برامج تعلّمك الحروف وأنت تضحك، وشخصيات حفظناها أكثر من أسماء عيال الجيران. إلى اليوم نتذكر الحروف بنفس الطريقة."],
+  ["tv", 1991, "حروف وألوف", "تجتمع العائلة على برنامج المسابقات، وكل واحد يحاول يجاوب قبل المتسابق. وإذا جاوب صح صار بطل البيت لين نهاية الحلقة."],
+  ["chips", 1992, "جوائز أكياس الشبس", "نشتري الشبس عشان الجائزة مو عشان الشبس! ستيكرات، تازو، ألعاب صغيرة… وفي الفسحة تبدأ أكبر بورصة تبادل جوائز في المدرسة 🍟"],
+  ["chips", 1990, "ريال البقالة", "بريال واحد تطلع من البقالة بكيس فيه شبس وعصير وعلكة. وصاحب البقالة يعرف اسمك واسم أبوك."],
+  ["video", 1989, "محل تأجير الأفلام", "يوم الخميس تروح لمحل الفيديو، وتحتار بين الأشرطة، وترجع البيت والعائلة كلها تنتظر. والتحدي الأكبر: لا تنسى «ترجّع الشريط» قبل لا ترده 📼"],
+  ["video", 1993, "شريط الكاست بالسيارة", "مشوار طويل وشريط واحد ينعاد عشرين مرة. وإذا الشريط علق، القلم هو الحل الوحيد عشان تلفّه ✏️"],
+  ["ball", 1994, "كورة الحارة وهدف العويران", "بعد هدف العويران في كأس العالم ٩٤، كل عيال الحارة صاروا يجربون نفس الركضة من نص الملعب… والمرمى حجرين ⚽"],
+  ["ball", 1992, "صاحب الكورة", "صاحب الكورة هو الحكم والكابتن وصاحب القرار. وإذا خسر فريقه أو زعل… خذ الكورة وراح البيت والمباراة انتهت 😅"],
+  ["family", 1990, "جمعة الجمعة عند الجدة", "الغداء على السفرة بالأرض، والقهوة والتمر بعدها، والعيال يلعبون في الحوش لين المغرب. وما فيه جوال يشغلك عن أحد."],
+  ["eid", 1991, "عيدية العيد", "تلبس الثوب الجديد وتلف على بيوت الأقارب، وتعد العيدية بعد كل بيت. وآخر اليوم تكتشف إن نصها راح على الألعاب النارية 🎆"],
+  ["eid", 1995, "رمضان والمسلسلات", "بعد الفطور تتجمع العائلة على مسلسل رمضان. وإذا انقطع الإرسال أو جاء ضيف وقت الحلقة… كارثة وطنية 😂"],
+  ["games", 1991, "شريط الـ٩٩٩ لعبة", "تشغّل كمبيوتر العائلة وتكتشف إن الـ٩٩٩ لعبة هي عشر ألعاب مكررة! بس برضو كنا نلعبها كلها بحماس 🎮"],
+  ["games", 1994, "انفخ الشريط", "إذا اللعبة ما اشتغلت، الحل المعتمد عند الكل: تطلع الشريط وتنفخ فيه وترجعه. وإذا ما اشتغلت؟ تنفخ أقوى 😂"],
+  ["games", 1996, "جهاز الطوب بالشنطة", "جهاز الطوب أبو ٩٩٩٩ لعبة كان في كل شنطة مدرسة، وكل ما خلصت البطارية تبدأ رحلة البحث عن بطاريات في البيت 🧱"],
+  ["school", 1993, "الفسحة والمقصف", "زحمة المقصف، والصندوق يلف بين الطلاب، والفطيرة بالجبن… والسباق عشان تخلص قبل الجرس 🔔"],
+  ["school", 1988, "دفتر الواجب وغلاف الكتب", "أول أسبوع بالمدرسة يعني تغليف الكتب بالبلاستيك، وكتابة الاسم بأحلى خط، ودفتر جديد تحلف إنك بتحافظ عليه هالسنة."],
+  ["other", 1985, "سلطان بن سلمان في الفضاء", "سنة ٨٥ طلع الأمير سلطان بن سلمان للفضاء، وصار أول رائد فضاء عربي مسلم. وكنا نتابع الخبر في التلفزيون ونحلم نصير رواد فضاء 🚀"]
+];
+const SEED_EVENTS = [
+  [1977, "🕹️", "جهاز الأتاري يدخل البيوت", "ظهر جهاز الأتاري المنزلي بأشرطته الملونة وعصا التحكم أبو زر واحد."],
+  [1980, "😮", "لعبة المتاهة الصفراء في الصالات", "انطلقت لعبة المتاهة الشهيرة اللي اشتهرت عندنا باسم (بيبسي مان)، وصارت من أشهر ألعاب الصالات في العالم."],
+  [1983, "🎮", "ميلاد كمبيوتر العائلة", "انطلق في اليابان الجهاز اللي عرفناه باسم (كمبيوتر العائلة)، وبعدها وصل بيوتنا بأشرطة الـ٩٩٩ لعبة."],
+  [1984, "🏆", "الأخضر بطل آسيا لأول مرة", "المنتخب السعودي يفوز بكأس آسيا لأول مرة في تاريخه، في سنغافورة."],
+  [1984, "🟫", "اختراع لعبة الطوب المتساقط", "اخترع مبرمج روسي لعبة القطع المتساقطة، وصارت بعدها اللعبة الأساسية في جهاز الطوب."],
+  [1985, "🚀", "أول رائد فضاء عربي مسلم", "الأمير سلطان بن سلمان ينطلق للفضاء على متن المكوك ديسكفري."],
+  [1985, "🍄", "انطلاق أشهر لعبة منصات", "صدرت لعبة السبّاك الشهيرة على كمبيوتر العائلة، وصارت أشهر لعبة في جيلنا."],
+  [1988, "🏆", "كأس آسيا الثانية", "الأخضر يحتفظ بلقب كأس آسيا للمرة الثانية، في قطر."],
+  [1988, "🔵", "ظهور جهاز السيقا ١٦ بت", "انطلق جهاز السيقا في اليابان بألوانه وسرعته، وبدأت حرب الأجهزة."],
+  [1989, "🌍", "أبطال العالم للناشئين", "المنتخب السعودي للناشئين يفوز بكأس العالم في اسكتلندا."],
+  [1989, "📟", "الجهاز المحمول بالجيب", "صدر أول جهاز ألعاب محمول ناجح بشاشة خضراء، والكل صار يبي واحد بالشنطة."],
+  [1993, "📺", "أول حلقة من طاش ما طاش", "عُرضت أول حلقة من طاش ما طاش في رمضان على القناة السعودية الأولى."],
+  [1994, "⚽", "الأخضر في كأس العالم لأول مرة", "أول مشاركة سعودية في كأس العالم بأمريكا، وهدف سعيد العويران التاريخي ضد بلجيكا."],
+  [1996, "🏆", "كأس آسيا الثالثة", "الأخضر يفوز بكأس آسيا للمرة الثالثة، في الإمارات."],
+  [1998, "🇫🇷", "كأس العالم في فرنسا", "الأخضر يشارك في كأس العالم للمرة الثانية على التوالي."]
+];
+
+
 async function migrate() {
   if (!pool) return;
   await pool.query(`
@@ -46,6 +88,9 @@ async function migrate() {
       created_at timestamptz not null default now()
     );
     alter table memories add column if not exists user_id uuid;
+    alter table memories add column if not exists official boolean not null default false;
+    create table if not exists events (id serial primary key, year int not null, emoji text not null default '📅', title text not null, body text, created_at timestamptz not null default now());
+    create table if not exists seeds (key text primary key);
     create table if not exists photos (
       memory_id uuid primary key references memories(id) on delete cascade,
       mime text not null, data bytea not null
@@ -100,6 +145,18 @@ async function migrate() {
       ["🎒", "فصل خامس ب", "ذكريات المدرسة والمقصف والفسحة", 6]
     ];
     for (const [e, n, d, s] of seed) await pool.query("insert into rooms (emoji,name,description,sort) values ($1,$2,$3,$4)", [e, n, d, s]);
+  }
+  if (!(await pool.query("select 1 from seeds where key='memories_v1'")).rows.length) {
+    let i = 0;
+    for (const [cat, year, title, text] of SEED_MEMORIES) {
+      await pool.query("insert into memories (id,title,text,cat,year,has_photo,author_id,author_name,delete_token,official,created_at) values ($1,$2,$3,$4,$5,false,'official',$6,$7,true, now() - ($8 || ' minutes')::interval)",
+        [crypto.randomUUID(), title, text, cat, year, OFFICIAL_NAME, crypto.randomBytes(18).toString("hex"), String((SEED_MEMORIES.length - i++) * 37)]);
+    }
+    await pool.query("insert into seeds (key) values ('memories_v1')");
+  }
+  if (!(await pool.query("select 1 from seeds where key='events_v1'")).rows.length) {
+    for (const [year, emoji, title, body] of SEED_EVENTS) await pool.query("insert into events (year,emoji,title,body) values ($1,$2,$3,$4)", [year, emoji, title, body]);
+    await pool.query("insert into seeds (key) values ('events_v1')");
   }
   const s = await pool.query("select value from settings where key='site'");
   if (s.rows.length) SETTINGS = mergeSettings(DEFAULTS, s.rows[0].value);
@@ -245,16 +302,20 @@ async function handle(req, res) {
   }
 
   if (M === "GET" && p === "/api/v") return send(res, 200, { v: version, c: chatRev });
+  if (M === "GET" && p === "/api/events") {
+    const r = await pool.query("select id,year,emoji,title,body from events order by year, id");
+    return send(res, 200, { events: r.rows });
+  }
 
   if (M === "GET" && p === "/api/state") {
     const [m, r] = await Promise.all([
-      pool.query("select id,title,text,cat,year,city,prompt,has_photo,author_id,author_name,created_at from memories order by created_at desc limit 1000"),
+      pool.query("select id,title,text,cat,year,city,prompt,has_photo,author_id,author_name,official,created_at from memories order by created_at desc limit 1000"),
       pool.query("select memory_id,device_id from remembers limit 20000")
     ]);
     return send(res, 200, {
       v: version,
       mems: m.rows.map(x => ({ id: x.id, title: x.title, text: x.text, cat: x.cat, year: x.year, city: x.city, prompt: x.prompt,
-        photo: x.has_photo ? "/api/photo/" + x.id : null, author: x.author_id, authorName: x.author_name, createdAt: new Date(x.created_at).getTime() })),
+        photo: x.has_photo ? "/api/photo/" + x.id : null, author: x.author_id, authorName: x.author_name, official: x.official, createdAt: new Date(x.created_at).getTime() })),
       rems: r.rows.map(x => ({ m: x.memory_id, u: x.device_id }))
     });
   }
@@ -463,10 +524,40 @@ async function handle(req, res) {
       return send(res, 200, { ok: true });
     }
     if (M === "GET" && a === "/memories") {
-      const r = await pool.query(`select m.id,m.title,m.text,m.cat,m.year,m.city,m.has_photo,m.author_name,m.created_at,u.email,
+      const r = await pool.query(`select m.id,m.title,m.text,m.cat,m.year,m.city,m.has_photo,m.author_name,m.official,m.created_at,u.email,
           (select count(*)::int from remembers x where x.memory_id=m.id) remembers
         from memories m left join users u on u.id=m.user_id order by m.created_at desc limit 1000`);
       return send(res, 200, { memories: r.rows.map(x => Object.assign({}, x, { photo: x.has_photo ? "/api/photo/" + x.id : null })) });
+    }
+    if (M === "POST" && a === "/memories") {
+      const b = await readJson(req, 10000); const text = str(b.text, 3000);
+      if (text.length < 5) return send(res, 400, { error: "invalid" });
+      const y = parseInt(b.year, 10);
+      await pool.query("insert into memories (id,title,text,cat,year,has_photo,author_id,author_name,delete_token,official) values ($1,$2,$3,$4,$5,false,'official',$6,$7,true)",
+        [crypto.randomUUID(), str(b.title, 70) || null, text, CATS.includes(b.cat) ? b.cat : "other", y >= 1970 && y <= 2015 ? y : null, str(b.authorName, 30) || OFFICIAL_NAME, crypto.randomBytes(18).toString("hex")]);
+      version = Date.now(); return send(res, 200, { ok: true });
+    }
+    if (M === "GET" && a === "/events") { const r = await pool.query("select * from events order by year, id"); return send(res, 200, { events: r.rows }); }
+    if (M === "POST" && a === "/events") {
+      const b = await readJson(req, 4000); const y = parseInt(b.year, 10), title = str(b.title, 80);
+      if (!(y >= 1960 && y <= 2030) || !title) return send(res, 400, { error: "invalid" });
+      await pool.query("insert into events (year,emoji,title,body) values ($1,$2,$3,$4)", [y, str(b.emoji, 8) || "📅", title, str(b.body, 300) || null]);
+      return send(res, 200, { ok: true });
+    }
+    const evd = a.match(/^\/events\/(\d+)\/delete$/);
+    if (M === "POST" && evd) { await pool.query("delete from events where id=$1", [+evd[1]]); return send(res, 200, { ok: true }); }
+    const ued = a.match(/^\/users\/([0-9a-f-]{36})\/edit$/i);
+    if (M === "POST" && ued) {
+      const b = await readJson(req, 2000); const name = str(b.name, 40), nickname = str(b.nickname, 30);
+      if (name.length < 2) return send(res, 400, { error: "name" });
+      const showReal = nickname ? b.showReal !== false : true;
+      await pool.query("update users set name=$2, nickname=$3, show_real=$4 where id=$1", [ued[1], name, nickname || null, showReal]);
+      const disp = showReal || !nickname ? name : nickname;
+      await pool.query("update messages set name=$2 where user_id=$1", [ued[1], disp]);
+      await pool.query("update scores set name=$2 where user_id=$1", [ued[1], disp]);
+      await pool.query("update memories set author_name=$2 where user_id=$1", [ued[1], disp]);
+      version = Date.now(); chatRev = Date.now();
+      return send(res, 200, { ok: true });
     }
     const md = a.match(/^\/memories\/([0-9a-f-]{36})\/delete$/i);
     if (M === "POST" && md) { await pool.query("delete from memories where id=$1", [md[1]]); version = Date.now(); return send(res, 200, { ok: true }); }

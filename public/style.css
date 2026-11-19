@@ -344,3 +344,21 @@ textarea:focus,input:focus,select:focus{outline:2px solid var(--teal);outline-of
 .hall-g div.r span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hall-g div.r b{color:#f2c230}
 .cart .best{white-space:pre-line;line-height:1.45}
+
+/* ===== v4: archive + events ===== */
+.card.official{border-color:#e9c46a;box-shadow:0 3px 0 #e9c46a;background:linear-gradient(180deg,#fffaf1,#fff4dc)}
+.tag.offtag{background:var(--wood);color:#fff2d6}
+.evcard{margin:0 0 14px;background:var(--wood);color:#fff;border-radius:18px;padding:14px 16px}
+.evlbl{font-family:Lalezar;font-size:20px;color:var(--mustard)}
+.evrow{display:flex;gap:10px;align-items:flex-start;margin:6px 0 12px}
+.evyear{font-family:Lalezar;font-size:30px;line-height:1;color:#fff6d6;flex:none}
+.evemo{font-size:28px;line-height:1;flex:none}
+.evrow b{font-size:17px;display:block;line-height:1.35}
+.evrow p{margin:2px 0 0;font-size:14px;color:#f0e2cc;line-height:1.5}
+.evcard .row{display:flex;gap:6px;flex-wrap:wrap}
+.evcard .btn.ghost{background:rgba(255,255,255,.15);color:#fff;font-size:13.5px;padding:8px 12px}
+.tlev{position:relative;display:flex;gap:10px;align-items:flex-start;background:#fff4dc;border:1.5px dashed #e9c46a;border-radius:12px;padding:8px 12px;margin:-4px 0 10px}
+.tlev .e{font-size:22px;line-height:1.2}
+.tlev b{font-size:14.5px}
+.tlev p{margin:2px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
+.tly-ev{cursor:default}

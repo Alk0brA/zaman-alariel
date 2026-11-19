@@ -60,6 +60,7 @@
         <button class="btn ghost" id="promptNext">سؤال ثاني ↻</button>
       </div>
     </div>
+    <div class="evcard hidden" id="evCard"></div>
     <div class="filters" id="decFilters"></div>
     <div class="filters" id="catFilters"></div>
     <div class="sortrow">
@@ -76,7 +77,7 @@
   <section id="tab-time" class="hidden">
     <button class="chip" id="backFromTimeline">→ رجوع للذكريات</button>
     <div class="h2">الخط الزمني</div>
-    <p class="sub">كل سنة وكم ذكرى انضافت عنها. اضغط على السنة وتشوف ذكرياتها.</p>
+    <p class="sub">أحداث من زمن الأريل، وكل سنة كم ذكرى انضافت عنها. اضغط على السنة وتشوف ذكرياتها.</p>
     <div id="timeline"></div>
   </section>
 
@@ -165,7 +166,7 @@
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="regTitle">
     <div class="reg-hero"><div class="tvmini">📺</div><h2 id="regTitle" class="display" style="font-size:28px;margin:0">حيّاك في زمن الأريل!</h2><p id="regReason">سجّل اسمك عشان تشارك ذكرياتك، وتلعب وتدخل لوحة الأبطال، وتسولف في الدواوين.</p></div>
     <form id="regForm" novalidate>
-      <div class="field"><label for="rName">اسمك</label><input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="مثال: سمير الفيفي" required></div>
+      <div class="field"><label for="rName">اسمك</label><input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="مثال: عبدالله علي" required></div>
       <div class="field"><label for="rNick">اسم مستعار <span class="hint">(اختياري — يظهر بدل اسمك)</span></label><input type="text" id="rNick" maxlength="30" placeholder="مثال: أبو الأريل"></div>
       <div class="field" id="rShowWrap"><label>وش يظهر للناس؟</label>
         <div class="radio"><label><input type="radio" name="rShow" value="real" checked> اسمي الحقيقي</label><label><input type="radio" name="rShow" value="nick"> الاسم المستعار</label></div></div>
