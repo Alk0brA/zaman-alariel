@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>زمن الأريل — ذكريات وألعاب جيل الثمانينات والتسعينات</title>
+<meta name="description" content="زمن الأريل: منصة تفاعلية لجيل الثمانينات والتسعينات — ذكريات التلفزيون والأريل، ألعاب الأتاري وكمبيوتر العائلة، ودواوين دردشة تجمع الجيل.">
+<meta property="og:title" content="زمن الأريل 📺">
+<meta property="og:description" content="ذكريات وألعاب ودواوين جيل الثمانينات والتسعينات — تعال العب وسولف معنا.">
+<meta name="theme-color" content="#5a3825">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand">📺 زمن الأريل</span>
+    <button class="userchip cta" id="userChip">سجّل دخولك</button>
+  </div>
+  <div class="announce" id="announce"></div>
+
+  <header class="hero">
+    <svg class="antenna" viewBox="0 0 150 60" aria-hidden="true">
+      <line x1="75" y1="56" x2="22" y2="4" stroke="#5a3825" stroke-width="4" stroke-linecap="round"/>
+      <line x1="75" y1="56" x2="128" y2="4" stroke="#5a3825" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="22" cy="4" r="4" fill="#e2672b"/><circle cx="128" cy="4" r="4" fill="#e2672b"/>
+      <path d="M55 60 Q75 40 95 60Z" fill="#5a3825"/>
+    </svg>
+    <div class="tv">
+      <div class="screen">
+        <div class="scan"></div>
+        <h1 class="display" id="siteTitle">زمن الأريل</h1>
+        <p>ذكريات وألعاب ودواوين جيل الثمانينات والتسعينات</p>
+      </div>
+      <div class="knobs">
+        <div class="knob"></div><div class="knob s"></div>
+        <div class="speaker"></div>
+        <button class="offbtn" id="offBtn" title="نهاية الإرسال" aria-label="نهاية الإرسال">📴</button>
+      </div>
+    </div>
+    <div class="counters">
+      <div class="counter"><b id="cMem">٠</b><span>ذكرى</span></div>
+      <div class="counter"><b id="cRem">٠</b><span>"أتذكرها"</span></div>
+      <div class="counter"><b id="cPpl">٠</b><span>مشارك</span></div>
+    </div>
+  </header>
+
+  <div class="note" id="note"></div>
+
+  <!-- FEED -->
+  <section id="tab-feed">
+    <div class="prompt">
+      <div class="lbl">تذكر؟</div>
+      <div class="q" id="promptQ"></div>
+      <div class="row">
+        <button class="btn pri" id="promptAns">جاوب عليها</button>
+        <button class="btn ghost" id="promptNext">سؤال ثاني ↻</button>
+      </div>
+    </div>
+    <div class="filters" id="decFilters"></div>
+    <div class="filters" id="catFilters"></div>
+    <div class="sortrow">
+      <span id="feedCount"></span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="chip" id="openTimeline">📅 الخط الزمني</button>
+        <div class="seg"><button data-sort="new" class="on">الأحدث</button><button data-sort="top">الأكثر تذكّراً</button></div>
+      </div>
+    </div>
+    <div id="feed"></div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="tab-time" class="hidden">
+    <button class="chip" id="backFromTimeline">→ رجوع للذكريات</button>
+    <div class="h2">الخط الزمني</div>
+    <p class="sub">كل سنة وكم ذكرى انضافت عنها. اضغط على السنة وتشوف ذكرياتها.</p>
+    <div id="timeline"></div>
+  </section>
+
+  <!-- GAMES -->
+  <section id="tab-games" class="hidden">
+    <div class="h2">صالة الألعاب 🕹️</div>
+    <p class="sub">ألعاب بروح الأتاري وكمبيوتر العائلة وجهاز الطوب. العب وسجّل نتيجتك في لوحة الأبطال.</p>
+    <div class="carts" id="carts"></div>
+  </section>
+
+  <!-- CHAT -->
+  <section id="tab-chat" class="hidden">
+    <div class="h2">الدواوين 💬</div>
+    <p class="sub">ادخل أي ديوانية وسولف مع جيل الثمانينات والتسعينات.</p>
+    <div class="rooms" id="rooms"></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="tab-quiz" class="hidden">
+    <div class="h2">خمّن البرنامج</div>
+    <p class="sub">نوصف لك برنامج أو مسلسل من أيام زمان، وأنت تخمّن وش هو.</p>
+    <div class="quiz" id="quiz"></div>
+    <div class="h2" style="margin-top:22px">جوائز الشبس 🍟</div>
+    <p class="sub">مثل جوائز أكياس الشبس زمان، كل ما شاركت أكثر طلعت لك جائزة جديدة.</p>
+    <div class="progress"><i id="stkBar" style="width:0"></i></div>
+    <p class="sub" id="stkCount"></p>
+    <div class="grid" id="stickers"></div>
+  </section>
+</div>
+
+<!-- room view -->
+<div class="roomview hidden" id="roomView">
+  <div class="rvh"><button id="roomBack" aria-label="رجوع">→</button><div><div class="t" id="roomTitle"></div><div class="o" id="roomOnline"></div></div></div>
+  <div class="msgs" id="msgs"></div>
+  <form class="composer" id="chatForm"><input type="text" id="chatInput" maxlength="500" placeholder="اكتب رسالتك…" autocomplete="off"><button class="btn pri" type="submit">إرسال</button></form>
+</div>
+
+<button class="fab" id="fab">＋ أضف ذكرى</button>
+
+<nav class="bottom"><div class="in">
+  <button data-tab="feed" class="on"><span>📺</span>الذكريات</button>
+  <button data-tab="games"><span>🕹️</span>الألعاب</button>
+  <button data-tab="chat"><span>💬</span>الدواوين</button>
+  <button data-tab="quiz"><span>🍟</span>خمّن وجوائز</button>
+</div></nav>
+
+<!-- Composer -->
+<div class="overlay" id="composer">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cmpTitle">
+    <div class="hd"><h2 id="cmpTitle">ذكرى جديدة</h2><button class="x" id="cmpClose" aria-label="إغلاق">✕</button></div>
+    <div class="ansbox" id="ansBox"></div>
+    <div class="field">
+      <label for="fText">اكتب سالفتك <span class="hint">— أو سجّلها بصوتك</span></label>
+      <textarea id="fText" placeholder="مثال: كنا نطلع السطح أنا وأخوي نعدّل الأريل، وأبوي تحت يصارخ: خلاص! خلاص! لا رجعت الصورة…"></textarea>
+      <div class="partial" id="partial"></div>
+      <div class="tools">
+        <button class="tbtn hidden" id="micBtn" type="button">🎙️ سجّل بصوتك</button>
+        <label class="tbtn" id="photoLbl">📷 أضف صورة<input type="file" id="fPhoto" accept="image/*" hidden></label>
+      </div>
+      <div class="photo-prev" id="photoPrev"><img id="photoImg" alt="معاينة الصورة"><button class="x" id="photoRm" type="button" aria-label="إزالة الصورة">✕</button></div>
+    </div>
+    <div class="field">
+      <label for="fTitle">عنوان قصير</label>
+      <input type="text" id="fTitle" maxlength="70" placeholder="مثال: معركة الأريل فوق السطح">
+    </div>
+    <div class="field">
+      <label>التصنيف</label>
+      <div class="cats" id="fCats"></div>
+    </div>
+    <div class="field two">
+      <div><label for="fYear">السنة تقريباً</label><select id="fYear"></select></div>
+      <div><label for="fCity">المدينة <span class="hint">(اختياري)</span></label><input type="text" id="fCity" maxlength="30" placeholder="الرياض، جدة…"></div>
+    </div>
+    <div class="field hidden" id="fNameWrap">
+      <label for="fName">اسمك أو لقبك</label>
+      <input type="text" id="fName" maxlength="30" placeholder="مثال: أبو فهد">
+    </div>
+    <button class="btn pri submit" id="submitBtn">انشر الذكرى 📡</button>
+  </div>
+</div>
+
+<!-- Registration -->
+<div class="overlay top" id="regOv">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="regTitle">
+    <div class="reg-hero"><div class="tvmini">📺</div><h2 id="regTitle" class="display" style="font-size:28px;margin:0">حيّاك في زمن الأريل!</h2><p id="regReason">سجّل اسمك عشان تشارك ذكرياتك، وتلعب وتدخل لوحة الأبطال، وتسولف في الدواوين.</p></div>
+    <form id="regForm" novalidate>
+      <div class="field"><label for="rName">اسمك</label><input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="مثال: سمير الفيفي" required></div>
+      <div class="field"><label for="rNick">اسم مستعار <span class="hint">(اختياري — يظهر بدل اسمك)</span></label><input type="text" id="rNick" maxlength="30" placeholder="مثال: أبو الأريل"></div>
+      <div class="field" id="rShowWrap"><label>وش يظهر للناس؟</label>
+        <div class="radio"><label><input type="radio" name="rShow" value="real" checked> اسمي الحقيقي</label><label><input type="radio" name="rShow" value="nick"> الاسم المستعار</label></div></div>
+      <div class="field"><label for="rEmail">البريد الإلكتروني</label><input type="email" id="rEmail" maxlength="120" autocomplete="email" inputmode="email" placeholder="name@example.com" required dir="ltr"></div>
+      <div class="field"><label for="rPhone">رقم الجوال <span class="hint">(اختياري)</span></label><input type="tel" id="rPhone" maxlength="20" autocomplete="tel" inputmode="tel" placeholder="05xxxxxxxx" dir="ltr"></div>
+      <label class="check"><input type="checkbox" id="rConsent"> <span>أوافق على <button type="button" class="linkbtn" id="openPrivacy">سياسة الخصوصية</button> وشروط استخدام المنصة.</span></label>
+      <label class="check"><input type="checkbox" id="rMk"> <span>أبي توصلني أخبار وفعاليات وعروض زمن الأريل على بريدي أو جوالي.</span></label>
+      <div class="err" id="regErr"></div>
+      <button class="btn pri submit" type="submit" id="regBtn">ادخل المنصة 🎉</button>
+      <button class="later" type="button" id="regLater">لاحقاً، خلني أتفرج أول</button>
+    </form>
+  </div>
+</div>
+
+<!-- Profile -->
+<div class="overlay top" id="profOv">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="profTitle">
+    <div class="hd"><h2 id="profTitle">حسابي</h2><button class="x" id="profClose" aria-label="إغلاق">✕</button></div>
+    <p class="sub" id="profInfo"></p>
+    <div class="field"><label for="pNick">اسم مستعار</label><input type="text" id="pNick" maxlength="30"></div>
+    <div class="field"><label>وش يظهر للناس؟</label>
+      <div class="radio"><label><input type="radio" name="pShow" value="real"> اسمي الحقيقي</label><label><input type="radio" name="pShow" value="nick"> الاسم المستعار</label></div></div>
+    <label class="check"><input type="checkbox" id="pMk"> <span>أبي توصلني أخبار وعروض زمن الأريل.</span></label>
+    <button class="btn pri submit" id="profSave">حفظ</button>
+    <button class="later" id="logout">تسجيل خروج من هذا الجهاز</button>
+  </div>
+</div>
+
+<!-- Privacy -->
+<div class="overlay top" id="privOv" style="z-index:110">
+  <div class="sheet privacy" role="dialog" aria-modal="true" aria-labelledby="privTitle">
+    <div class="hd"><h2 id="privTitle">سياسة الخصوصية</h2><button class="x" id="privClose" aria-label="إغلاق">✕</button></div>
+    <h3>وش البيانات اللي نجمعها؟</h3>
+    <p>الاسم، والاسم المستعار إذا كتبته، والبريد الإلكتروني، ورقم الجوال إذا أضفته. ونحفظ كذلك اللي تنشره في المنصة: الذكريات والصور والرسائل ونتائج الألعاب.</p>
+    <h3>ليش نجمعها؟</h3>
+    <p>عشان تقدر تشارك في المنصة ويظهر اسمك على مشاركاتك. وإذا وافقت على خيار الأخبار والعروض، نتواصل معك بخصوص فعاليات زمن الأريل وعروضها.</p>
+    <h3>مين يشوفها؟</h3>
+    <p>الناس يشوفون الاسم اللي اخترت يظهر بس. البريد والجوال ما يطلعون لأحد غير إدارة المنصة، وما نبيعهم لأي جهة.</p>
+    <h3>حقوقك</h3>
+    <p>تقدر تطلب تعديل بياناتك أو حذفها أو إلغاء موافقتك على الرسائل التسويقية بأي وقت، عن طريق التواصل مع إدارة المنصة. وتقدر تلغي موافقتك على الأخبار من صفحة (حسابي).</p>
+  </div>
+</div>
+
+<!-- Sign-off -->
+<div class="signoff" id="signoff" aria-live="polite">
+  <div class="bars"><i style="background:#c0c0c0"></i><i style="background:#c0c000"></i><i style="background:#00c0c0"></i><i style="background:#00c000"></i><i style="background:#c000c0"></i><i style="background:#c00000"></i><i style="background:#0000c0"></i></div>
+  <div class="bars2"><i style="background:#0000c0"></i><i style="background:#131313"></i><i style="background:#c000c0"></i><i style="background:#131313"></i><i style="background:#00c0c0"></i><i style="background:#131313"></i><i style="background:#c0c0c0"></i></div>
+  <div class="bars3"><i style="flex:1.2;background:#00214c"></i><i style="flex:1.2;background:#fff"></i><i style="flex:1.2;background:#32006a"></i><i style="flex:3"></i></div>
+  <div class="msg"><div class="box">
+    <div class="clock" id="soClock"></div>
+    <h2>انتهى الإرسال</h2>
+    <p>نلقاكم غداً إن شاء الله… تصبحون على خير 🌙</p>
+    <div class="row">
+      <button class="btn pri" id="soStay">أبي أسهر 🌙</button>
+      <button class="btn soft" id="soTone">🔊 صوت الإرسال</button>
+    </div>
+  </div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="/games.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

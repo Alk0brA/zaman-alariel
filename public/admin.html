@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>لوحة التحكم — زمن الأريل</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎛️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4efe6;--card:#fff;--ink:#22180f;--muted:#7a6a5a;--line:#e6dccb;--side:#2b1d14;--side2:#3d2a1d;--acc:#e2672b;--teal:#17807d;--red:#c43d32;--ok:#2e8b57}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tajawal,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:15px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;color:var(--ink);width:100%}
+textarea{min-height:120px;resize:vertical}
+.btn{border:0;border-radius:10px;padding:9px 14px;font-weight:800;font-size:14px;background:var(--acc);color:#fff;white-space:nowrap}
+.btn.sec{background:#efe6d6;color:var(--ink)}
+.btn.red{background:var(--red)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5}
+.hidden{display:none!important}
+/* login */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login form{background:var(--card);border-radius:18px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center}
+.login h1{font-family:Lalezar;font-weight:400;font-size:30px;margin:6px 0}
+.login .err{color:var(--red);font-weight:700;min-height:22px;margin:8px 0}
+/* layout */
+.app{display:flex;min-height:100vh}
+aside{width:240px;background:var(--side);color:#f3e7d6;flex:none;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;z-index:30}
+aside .brand{font-family:Lalezar;font-size:24px;padding:20px 18px 6px}
+aside .brand small{display:block;font-family:Tajawal;font-size:12px;color:#c9b39a;font-weight:700}
+aside nav{display:flex;flex-direction:column;padding:10px;gap:2px}
+aside nav button{border:0;background:transparent;color:#e8d8c3;text-align:right;padding:11px 12px;border-radius:10px;font-weight:700;font-size:15px;display:flex;gap:10px;align-items:center}
+aside nav button.on{background:var(--side2);color:#fff;box-shadow:inset -3px 0 0 var(--acc)}
+aside .foot{margin-top:auto;padding:14px;display:flex;flex-direction:column;gap:6px}
+aside .foot a{color:#f2c230;font-weight:700;text-decoration:none;font-size:14px}
+aside .foot button{border:0;background:transparent;color:#c9b39a;text-align:right;padding:4px 0;font-weight:700}
+main{flex:1;min-width:0;padding:22px 26px 60px}
+.mtop{display:none;align-items:center;gap:10px;margin-bottom:12px}
+.mtop button{border:0;background:var(--side);color:#fff;border-radius:10px;width:42px;height:42px;font-size:20px}
+.mtop b{font-family:Lalezar;font-size:22px;font-weight:400}
+h2{font-family:Lalezar;font-weight:400;font-size:30px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px}
+.kpi b{display:block;font-family:Lalezar;font-weight:400;font-size:32px;line-height:1.1;color:var(--acc)}
+.kpi span{color:var(--muted);font-size:13.5px;font-weight:700}
+.panel{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
+.panel h3{margin:0 0 12px;font-size:17px}
+.chart{display:flex;align-items:flex-end;gap:6px;height:160px;padding-top:10px;direction:ltr}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.chart .bar{width:100%;max-width:28px;background:linear-gradient(var(--acc),#f2a65a);border-radius:5px 5px 0 0;min-height:2px;position:relative}
+.chart .bar.t{background:linear-gradient(var(--teal),#5fc0b5)}
+.chart .v{font-size:11px;font-weight:800;color:var(--ink)}
+.chart .d{font-size:10.5px;color:var(--muted)}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:middle}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar input{max-width:320px}
+.tablewrap{overflow-x:auto;background:var(--card);border:1.5px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:820px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th{background:#faf6ef;font-size:13px;color:var(--muted);position:sticky;top:0}
+td.ltr{direction:ltr;text-align:left}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:800;background:#efe6d6}
+.badge.ok{background:#dff3e6;color:var(--ok)}.badge.no{background:#f8e0dc;color:var(--red)}
+.list{display:grid;gap:10px}
+.item{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.item .body{flex:1;min-width:0}
+.item .meta{font-size:12.5px;color:var(--muted);margin-top:4px}
+.item .txt{white-space:pre-wrap;word-break:break-word;margin-top:4px}
+.item img{width:80px;height:80px;object-fit:cover;border-radius:10px;flex:none}
+.rooms-ed{display:grid;gap:10px}
+.room-row{display:grid;grid-template-columns:70px 1.2fr 2fr 80px auto auto;gap:8px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px}
+.switch{display:flex;align-items:center;gap:8px;font-weight:700;padding:8px 0;cursor:pointer}
+.switch input{width:20px;height:20px;accent-color:var(--acc)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.field{margin-bottom:12px}
+.field label{display:block;font-weight:800;font-size:14px;margin-bottom:5px}
+.field .hint{font-weight:500;color:var(--muted);font-size:12.5px}
+.games-ad{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.games-ad ol{margin:6px 0 0;padding-inline-start:20px;font-size:14px}
+.games-ad li{display:flex;justify-content:space-between;gap:8px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:12px;font-weight:700;z-index:80;transition:transform .25s}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.empty{color:var(--muted);text-align:center;padding:24px}
+.scrim{display:none}
+@media (max-width:860px){
+  aside{position:fixed;right:0;top:0;transform:translateX(100%);transition:transform .25s;box-shadow:-8px 0 30px rgba(0,0,0,.25)}
+  aside.open{transform:none}
+  .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20}
+  main{padding:14px 14px 60px}
+  .mtop{display:flex}
+  .room-row{grid-template-columns:60px 1fr;}
+  .room-row .desc{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginView">
+  <form id="loginForm">
+    <div style="font-size:46px">🎛️</div>
+    <h1>لوحة تحكم زمن الأريل</h1>
+    <p class="sub">ادخل كلمة مرور الإدارة</p>
+    <input type="password" id="pw" autocomplete="current-password" placeholder="كلمة المرور" dir="ltr" required>
+    <div class="err" id="loginErr"></div>
+    <button class="btn" style="width:100%;padding:12px" type="submit">دخول</button>
+  </form>
+</div>
+
+<div class="app hidden" id="appView">
+  <div class="scrim" id="scrim"></div>
+  <aside id="side">
+    <div class="brand">🎛️ زمن الأريل<small>لوحة التحكم</small></div>
+    <nav id="nav">
+      <button data-s="overview" class="on">📊 نظرة عامة</button>
+      <button data-s="users">👥 المستخدمون</button>
+      <button data-s="memories">📺 الذكريات</button>
+      <button data-s="chat">💬 الدواوين</button>
+      <button data-s="games">🕹️ الألعاب</button>
+      <button data-s="settings">⚙️ الإعدادات</button>
+    </nav>
+    <div class="foot"><a href="/" target="_blank" rel="noopener">↗ افتح المنصة</a><button id="logoutBtn">تسجيل خروج</button></div>
+  </aside>
+  <main>
+    <div class="mtop"><button id="menuBtn" aria-label="القائمة">☰</button><b>لوحة التحكم</b></div>
+
+    <section data-sec="overview">
+      <h2>نظرة عامة</h2><p class="sub">أرقام المنصة لحظة بلحظة.</p>
+      <div class="kpis" id="kpis"></div>
+      <div class="panel"><h3>آخر ١٤ يوم</h3><div class="chart" id="chart"></div>
+        <div class="legend"><span><i style="background:var(--acc)"></i>زوار</span><span><i style="background:var(--teal)"></i>تسجيلات جديدة</span></div></div>
+    </section>
+
+    <section data-sec="users" class="hidden">
+      <h2>المستخدمون</h2><p class="sub">كل اللي سجلوا في المنصة. تقدر تبحث وتصدّر وتوقف أي حساب.</p>
+      <div class="toolbar">
+        <input type="search" id="uq" placeholder="بحث بالاسم أو البريد أو الجوال…">
+        <label class="switch"><input type="checkbox" id="uMk"> الموافقين على التسويق فقط</label>
+        <button class="btn sec" id="uSearch">بحث</button>
+        <button class="btn" id="uCsv">⬇️ تصدير Excel (CSV)</button>
+      </div>
+      <p class="sub" id="uCount"></p>
+      <div class="tablewrap"><table><thead><tr><th>الاسم</th><th>المستعار</th><th>البريد</th><th>الجوال</th><th>تسويق</th><th>سجّل</th><th>آخر زيارة</th><th>نشاط</th><th>الحالة</th><th></th></tr></thead><tbody id="uBody"></tbody></table></div>
+    </section>
+
+    <section data-sec="memories" class="hidden">
+      <h2>الذكريات</h2><p class="sub">راجع الذكريات المنشورة واحذف أي شي غير لائق.</p>
+      <div class="toolbar"><input type="search" id="mq" placeholder="بحث في الذكريات…"></div>
+      <div class="list" id="mList"></div>
+    </section>
+
+    <section data-sec="chat" class="hidden">
+      <h2>الدواوين</h2><p class="sub">أضف دواوين جديدة، عدّلها أو اقفلها، وراقب الرسائل.</p>
+      <div class="panel"><h3>الدواوين</h3><div class="rooms-ed" id="roomsEd"></div>
+        <div class="room-row" style="margin-top:10px;background:#faf6ef">
+          <input id="nrEmoji" placeholder="💬" maxlength="8"><input id="nrName" placeholder="اسم الديوانية" maxlength="40"><input class="desc" id="nrDesc" placeholder="وصف قصير" maxlength="120"><input id="nrSort" type="number" placeholder="ترتيب"><span></span><button class="btn" id="nrAdd">＋ إضافة</button>
+        </div></div>
+      <div class="panel"><h3>آخر الرسائل</h3>
+        <div class="toolbar"><select id="msgRoom" style="max-width:260px"></select><button class="btn sec" id="msgReload">تحديث</button></div>
+        <div class="list" id="msgList"></div></div>
+    </section>
+
+    <section data-sec="games" class="hidden">
+      <h2>الألعاب</h2><p class="sub">فعّل أو أوقف أي لعبة، وشوف لوحة الأبطال، وصفّر النتائج.</p>
+      <div class="games-ad" id="gamesAd"></div>
+      <div style="margin-top:14px"><button class="btn red" id="resetAll">تصفير كل النتائج</button></div>
+    </section>
+
+    <section data-sec="settings" class="hidden">
+      <h2>الإعدادات</h2><p class="sub">تحكّم بتجربة المنصة. التغييرات تطبق على الزوار فوراً.</p>
+      <div class="grid2">
+        <div class="panel"><h3>عام</h3>
+          <div class="field"><label for="sTitle">اسم المنصة</label><input id="sTitle" maxlength="60"></div>
+          <div class="field"><label for="sAnn">شريط إعلان أعلى المنصة <span class="hint">(اتركه فاضي لإخفائه)</span></label><textarea id="sAnn" maxlength="300" style="min-height:70px"></textarea></div>
+        </div>
+        <div class="panel"><h3>التسجيل وجمع البيانات</h3>
+          <div class="field"><label for="sDelay">يطلب التسجيل بعد (ثانية) من دخول الزائر</label><input id="sDelay" type="number" min="0" max="3600"></div>
+          <label class="switch"><input type="checkbox" id="sReq"> التسجيل إجباري (بدون زر "لاحقاً")</label>
+          <label class="switch"><input type="checkbox" id="sMemReg"> لازم يسجّل عشان ينشر ذكرى</label>
+          <label class="switch"><input type="checkbox" id="sChatReg" disabled checked> لازم يسجّل عشان يكتب في الدواوين (دائماً)</label>
+        </div>
+        <div class="panel"><h3>الأقسام</h3>
+          <label class="switch"><input type="checkbox" data-f="memories"> الذكريات</label>
+          <label class="switch"><input type="checkbox" data-f="games"> الألعاب</label>
+          <label class="switch"><input type="checkbox" data-f="chat"> الدواوين</label>
+          <label class="switch"><input type="checkbox" data-f="quiz"> خمّن والجوائز</label>
+        </div>
+        <div class="panel"><h3>أسئلة "تذكر؟"</h3>
+          <div class="field"><label for="sPrompts">سؤال في كل سطر <span class="hint">(اتركها فاضية للأسئلة الافتراضية)</span></label><textarea id="sPrompts" style="min-height:180px"></textarea></div>
+        </div>
+      </div>
+      <button class="btn" id="sSave" style="padding:12px 26px">💾 حفظ الإعدادات</button>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const GAME_NAMES={hara:"🏃 مغامرة الحارة",hunt:"🦆 قنص الطيور",blocks:"🟫 الطوب المتساقط",snake:"🐍 الثعبان",bricks:"🧱 تكسير الطوب",invaders:"👾 حرب الفضاء"};
+const $=id=>document.getElementById(id);
+let TOKEN="";try{TOKEN=sessionStorage.getItem("za_admin")||""}catch(e){}
+let SETTINGS=null,USERS=[],MEMS=[];
+function h(tag,attrs,...kids){const el=document.createElement(tag);if(attrs)for(const k in attrs){const v=attrs[k];if(v==null||v===false)continue;if(k==="class")el.className=v;else if(k==="text")el.textContent=v;else if(k.startsWith("on"))el.addEventListener(k.slice(2),v);else el.setAttribute(k,v===true?"":v)}for(const c of kids.flat()){if(c==null||c===false)continue;el.append(c.nodeType?c:document.createTextNode(String(c)))}return el}
+const ar=n=>Number(n||0).toLocaleString("ar-SA");
+const dt=s=>{try{return new Date(s).toLocaleString("ar-SA",{year:"numeric",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}catch(e){return s}};
+let tt;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),2600)}
+async function api(path,body,raw){
+  const r=await fetch("/api/admin"+path,{method:body?"POST":"GET",headers:Object.assign({"x-za-admin":TOKEN},body?{"Content-Type":"application/json"}:{}),body:body?JSON.stringify(body):undefined});
+  if(r.status===401){logout();throw new Error("auth")}
+  if(raw)return r;
+  const b=await r.json().catch(()=>null);if(!r.ok)throw new Error((b&&b.error)||"error");return b;
+}
+function confirmBtn(btn,label,fn){
+  if(btn.dataset.arm){delete btn.dataset.arm;btn.textContent=label;fn();return}
+  btn.dataset.arm="1";const old=btn.textContent;btn.textContent="متأكد؟";setTimeout(()=>{if(btn.dataset.arm){delete btn.dataset.arm;btn.textContent=old}},3500);
+}
+
+/* login */
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();$("loginErr").textContent="";
+  try{
+    const r=await fetch("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("pw").value})});
+    const b=await r.json().catch(()=>({}));
+    if(!r.ok){$("loginErr").textContent=b.error==="wrong_password"?"كلمة المرور غلط":b.error==="rate_limited"?"محاولات كثيرة، انتظر دقيقة":b.error==="no_admin_password"?"كلمة مرور الإدارة غير مضبوطة في الخادم":"تعذّر الدخول";return}
+    TOKEN=b.token;try{sessionStorage.setItem("za_admin",TOKEN)}catch(x){}
+    showApp();
+  }catch(x){$("loginErr").textContent="تعذّر الاتصال"}
+});
+function logout(){TOKEN="";try{sessionStorage.removeItem("za_admin")}catch(e){}$("appView").classList.add("hidden");$("loginView").classList.remove("hidden")}
+$("logoutBtn").addEventListener("click",logout);
+function showApp(){$("loginView").classList.add("hidden");$("appView").classList.remove("hidden");go("overview")}
+if(TOKEN)showApp();
+
+/* nav */
+function go(s){
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.s===s));
+  document.querySelectorAll("main section").forEach(x=>x.classList.toggle("hidden",x.dataset.sec!==s));
+  $("side").classList.remove("open");$("scrim").classList.remove("show");
+  ({overview:loadOverview,users:loadUsers,memories:loadMems,chat:loadChat,games:loadGames,settings:loadSettings})[s]();
+}
+document.querySelectorAll("#nav button").forEach(b=>b.addEventListener("click",()=>go(b.dataset.s)));
+$("menuBtn").addEventListener("click",()=>{$("side").classList.add("open");$("scrim").classList.add("show")});
+$("scrim").addEventListener("click",()=>{$("side").classList.remove("open");$("scrim").classList.remove("show")});
+
+/* overview */
+async function loadOverview(){
+  const d=await api("/overview");
+  const k=[["👥","المستخدمون",d.users],["🆕","تسجيلات اليوم",d.usersToday],["📣","موافقين على التسويق",d.marketing],["👀","زوار اليوم",d.visitorsToday],["🌐","كل الزوار",d.visitorsAll],["📺","الذكريات",d.memories],["💬","الرسائل",d.messages],["🕹️","مرات اللعب",d.scores]];
+  $("kpis").replaceChildren(...k.map(([e,n,v])=>h("div",{class:"kpi"},h("b",null,ar(v)),h("span",null,e+" "+n))));
+  const max=Math.max(1,...d.series.map(x=>Math.max(x.visitors,x.signups)));
+  $("chart").replaceChildren(...d.series.map(x=>h("div",{class:"col"},
+    h("div",{class:"v"},x.visitors?String(x.visitors):""),
+    h("div",{style:"display:flex;gap:2px;width:100%;justify-content:center;align-items:flex-end;height:110px"},
+      h("div",{class:"bar",style:"height:"+Math.round(x.visitors/max*100)+"%"}),h("div",{class:"bar t",style:"height:"+Math.round(x.signups/max*100)+"%"})),
+    h("div",{class:"d"},x.day.slice(5)))));
+}
+
+/* users */
+async function loadUsers(){
+  const q=$("uq").value.trim(),mk=$("uMk").checked?"1":"0";
+  const d=await api("/users?q="+encodeURIComponent(q)+"&marketing="+mk);USERS=d.users;renderUsers();
+}
+function renderUsers(){
+  $("uCount").textContent=ar(USERS.length)+" مستخدم";
+  const b=$("uBody");b.replaceChildren();
+  if(!USERS.length){b.append(h("tr",null,h("td",{colspan:"10",class:"empty"},"ما فيه مستخدمين")));return}
+  for(const u of USERS){
+    const ban=h("button",{class:"btn sm "+(u.banned?"sec":"red"),onclick:async()=>{await api("/users/"+u.id+"/ban",{banned:!u.banned});u.banned=!u.banned;renderUsers();toast(u.banned?"انوقف الحساب":"انفك الإيقاف")}},u.banned?"فك الإيقاف":"إيقاف");
+    const del=h("button",{class:"btn sm sec",onclick:e=>confirmBtn(e.currentTarget,"حذف",async()=>{await api("/users/"+u.id+"/delete",{});USERS=USERS.filter(x=>x.id!==u.id);renderUsers();toast("انحذف المستخدم وبياناته")})},"حذف");
+    b.append(h("tr",null,h("td",{text:u.name}),h("td",{text:u.nickname||"—"}),h("td",{class:"ltr",text:u.email}),h("td",{class:"ltr",text:u.phone||"—"}),
+      h("td",null,h("span",{class:"badge "+(u.marketing?"ok":"")},u.marketing?"نعم":"لا")),h("td",{text:dt(u.created_at)}),h("td",{text:dt(u.last_seen)}),
+      h("td",{text:"📺"+u.memories+" · 💬"+u.messages+" · 🕹️"+u.plays}),h("td",null,h("span",{class:"badge "+(u.banned?"no":"ok")},u.banned?"موقوف":"نشط")),
+      h("td",null,h("div",{style:"display:flex;gap:4px"},ban,del))));
+  }
+}
+$("uSearch").addEventListener("click",loadUsers);$("uq").addEventListener("keydown",e=>{if(e.key==="Enter")loadUsers()});$("uMk").addEventListener("change",loadUsers);
+$("uCsv").addEventListener("click",async()=>{
+  try{const r=await api("/users.csv?marketing="+($("uMk").checked?"1":"0")+"&q="+encodeURIComponent($("uq").value.trim()),null,true);const blob=await r.blob();
+    const a=h("a",{href:URL.createObjectURL(blob),download:"zaman-alariel-users-"+new Date().toISOString().slice(0,10)+".csv"});document.body.append(a);a.click();a.remove();toast("تم التصدير")}catch(e){toast("تعذّر التصدير")}
+});
+
+/* memories */
+async function loadMems(){const d=await api("/memories");MEMS=d.memories;renderMems()}
+function renderMems(){
+  const q=$("mq").value.trim();const list=$("mList");list.replaceChildren();
+  const arr=MEMS.filter(m=>!q||(m.text+" "+(m.title||"")+" "+m.author_name).includes(q));
+  if(!arr.length){list.append(h("div",{class:"empty"},"ما فيه ذكريات"));return}
+  for(const m of arr)list.append(h("div",{class:"item"},m.photo?h("img",{src:m.photo,alt:""}):null,
+    h("div",{class:"body"},h("b",{text:m.title||"(بدون عنوان)"}),h("div",{class:"txt",text:m.text}),
+      h("div",{class:"meta",text:"✍️ "+m.author_name+(m.email?" ("+m.email+")":"")+" · "+(m.year||"بدون سنة")+" · 📺 "+m.remembers+" يتذكرونها · "+dt(m.created_at)})),
+    h("button",{class:"btn sm red",onclick:e=>confirmBtn(e.currentTarget,"حذف",async()=>{await api("/memories/"+m.id+"/delete",{});MEMS=MEMS.filter(x=>x.id!==m.id);renderMems();toast("انحذفت")})},"حذف")));
+}
+$("mq").addEventListener("input",renderMems);
+
+/* chat */
+let ROOMS=[];
+async function loadChat(){
+  const d=await api("/rooms");ROOMS=d.rooms;
+  const ed=$("roomsEd");ed.replaceChildren();
+  for(const r of ROOMS){
+    const emoji=h("input",{value:r.emoji,maxlength:"8"}),name=h("input",{value:r.name,maxlength:"40"}),desc=h("input",{class:"desc",value:r.description||"",maxlength:"120"}),sort=h("input",{type:"number",value:String(r.sort)});
+    const act=h("input",{type:"checkbox"});act.checked=r.active;
+    ed.append(h("div",{class:"room-row"},emoji,name,desc,sort,h("label",{class:"switch"},act,"مفتوحة · "+ar(r.count)+" رسالة"+(r.online?" · ● "+r.online:"")),
+      h("div",{style:"display:flex;gap:4px"},
+        h("button",{class:"btn sm",onclick:async()=>{await api("/rooms/"+r.id,{emoji:emoji.value,name:name.value,description:desc.value,sort:sort.value,active:act.checked});toast("انحفظت");loadChat()}},"حفظ"),
+        h("button",{class:"btn sm sec",onclick:e=>confirmBtn(e.currentTarget,"حذف",async()=>{await api("/rooms/"+r.id+"/delete",{});toast("انحذفت الديوانية ورسائلها");loadChat()})},"حذف"))));
+  }
+  const sel=$("msgRoom");const cur=sel.value;sel.replaceChildren(h("option",{value:"0"},"كل الدواوين"),...ROOMS.map(r=>h("option",{value:String(r.id)},r.emoji+" "+r.name)));sel.value=cur||"0";
+  loadMsgs();
+}
+$("nrAdd").addEventListener("click",async()=>{
+  const name=$("nrName").value.trim();if(!name){toast("اكتب اسم الديوانية");return}
+  await api("/rooms",{name,emoji:$("nrEmoji").value.trim(),description:$("nrDesc").value.trim(),sort:$("nrSort").value});
+  ["nrName","nrEmoji","nrDesc","nrSort"].forEach(i=>$(i).value="");toast("انضافت");loadChat();
+});
+async function loadMsgs(){
+  const d=await api("/messages?room="+$("msgRoom").value);const list=$("msgList");list.replaceChildren();
+  if(!d.messages.length){list.append(h("div",{class:"empty"},"ما فيه رسائل"));return}
+  for(const m of d.messages)list.append(h("div",{class:"item"},h("div",{class:"body"},h("b",{text:m.name}),h("span",{class:"meta",text:"  · "+m.room}),h("div",{class:"txt",text:m.text}),h("div",{class:"meta",text:(m.email||"")+" · "+dt(m.created_at)})),
+    h("button",{class:"btn sm red",onclick:async e=>{await api("/messages/"+m.id+"/delete",{});e.currentTarget.closest(".item").remove();toast("انحذفت الرسالة")}},"حذف")));
+}
+$("msgRoom").addEventListener("change",loadMsgs);$("msgReload").addEventListener("click",loadMsgs);
+
+/* games */
+async function loadGames(){
+  const [s,sc]=await Promise.all([api("/settings"),api("/scores")]);SETTINGS=s.settings;
+  const box=$("gamesAd");box.replaceChildren();
+  for(const id of Object.keys(GAME_NAMES)){
+    const on=h("input",{type:"checkbox"});on.checked=SETTINGS.games[id]!==false;
+    on.addEventListener("change",async()=>{const g=Object.assign({},SETTINGS.games);g[id]=on.checked;const r=await api("/settings",{games:g});SETTINGS=r.settings;toast(on.checked?"اللعبة مفعّلة":"اللعبة موقفة")});
+    const top=sc.scores[id]||[];
+    box.append(h("div",{class:"panel"},h("h3",null,GAME_NAMES[id]),h("label",{class:"switch"},on,"مفعّلة للزوار"),
+      top.length?h("ol",null,...top.slice(0,10).map(x=>h("li",null,h("span",{text:x.name}),h("b",null,ar(x.score))))):h("div",{class:"empty",style:"padding:10px"},"ما فيه نتائج"),
+      h("button",{class:"btn sm sec",style:"margin-top:10px",onclick:e=>confirmBtn(e.currentTarget,"تصفير النتائج",async()=>{await api("/scores/reset",{game:id});toast("تصفرت");loadGames()})},"تصفير النتائج")));
+  }
+}
+$("resetAll").addEventListener("click",e=>confirmBtn(e.currentTarget,"تصفير كل النتائج",async()=>{await api("/scores/reset",{game:"all"});toast("تصفرت كل النتائج");loadGames()}));
+
+/* settings */
+async function loadSettings(){
+  const d=await api("/settings");SETTINGS=d.settings;const s=SETTINGS;
+  $("sTitle").value=s.siteTitle||"";$("sAnn").value=s.announcement||"";$("sDelay").value=s.regDelaySec;
+  $("sReq").checked=!!s.regRequired;$("sMemReg").checked=!!s.memoriesNeedReg;
+  document.querySelectorAll("[data-f]").forEach(c=>c.checked=s.features[c.dataset.f]!==false);
+  $("sPrompts").value=(s.prompts||[]).join("\n");
+}
+$("sSave").addEventListener("click",async()=>{
+  const features={};document.querySelectorAll("[data-f]").forEach(c=>features[c.dataset.f]=c.checked);features.stickers=features.quiz;
+  try{
+    const r=await api("/settings",{siteTitle:$("sTitle").value.trim(),announcement:$("sAnn").value.trim(),regDelaySec:+$("sDelay").value||0,regRequired:$("sReq").checked,
+      memoriesNeedReg:$("sMemReg").checked,features,prompts:$("sPrompts").value.split("\n").map(x=>x.trim()).filter(Boolean)});
+    SETTINGS=r.settings;toast("انحفظت الإعدادات ✔️");
+  }catch(e){toast("تعذّر الحفظ")}
+});
+</script>
+</body>
+</html>
