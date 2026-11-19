@@ -13,7 +13,7 @@ const SECRET = process.env.SESSION_SECRET || crypto.createHash("sha256").update(
 const pool = DB_URL ? new Pool({ connectionString: DB_URL, ssl: /localhost|127\.0\.0\.1|\/tmp/.test(DB_URL) ? false : { rejectUnauthorized: false }, max: 8 }) : null;
 
 const CATS = ["tv","kids","ball","chips","video","family","school","eid","games","other"];
-const GAMES = ["hara","hunt","maze","crossing","racer","pong","bricks","invaders","rocks","blocks","snake"];
+const GAMES = ["hara","hunt","maze","tower","crossing","racer","falcon","pong","bricks","invaders","rocks","shield","blocks","snake","brickrace"];
 const MAX_PHOTO = 2 * 1024 * 1024;
 let version = Date.now();      // يتغير مع الذكريات و"أتذكرها"
 let chatRev = Date.now();      // يتغير عند حذف رسائل أو تعديل الدواوين
@@ -26,8 +26,8 @@ const DEFAULTS = {
   memoriesNeedReg: true,
   chatNeedsReg: true,
   features: { memories: true, games: true, chat: true, quiz: true, stickers: true },
-  games: Object.fromEntries(["hara","hunt","maze","crossing","racer","pong","bricks","invaders","rocks","blocks","snake"].map(g => [g, true])),
-  boards: Object.fromEntries(["hara","hunt","maze","crossing","racer","pong","bricks","invaders","rocks","blocks","snake"].map(g => [g, "public"])),
+  games: Object.fromEntries(["hara","hunt","maze","tower","crossing","racer","falcon","pong","bricks","invaders","rocks","shield","blocks","snake","brickrace"].map(g => [g, true])),
+  boards: Object.fromEntries(["hara","hunt","maze","tower","crossing","racer","falcon","pong","bricks","invaders","rocks","shield","blocks","snake","brickrace"].map(g => [g, "public"])),
   hallOfFame: true,
   prompts: []
 };
