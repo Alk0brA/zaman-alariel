@@ -90,6 +90,19 @@
     <div id="shelves"></div>
   </section>
 
+  <!-- LEADERS -->
+  <section id="tab-leaders" class="hidden">
+    <div class="h2">الأبطال 🏆</div>
+    <p class="sub">كل لعبة وكل ذكرى وكل سالفة في الدواوين ترفع مستواك. شوف مين يتصدر الجيل!</p>
+    <div class="lb-stats" id="lbStats"></div>
+    <div class="mycard" id="myCard"></div>
+    <div class="podium" id="podium"></div>
+    <div class="ticker"><div class="tk-h"><span class="live"></span> صار الحين</div><div id="ticker"></div></div>
+    <div class="h2" style="font-size:22px;margin-top:18px">الترتيب العام</div>
+    <div class="ranks" id="ranks"></div>
+    <details class="lvguide"><summary>🎖️ المستويات والألقاب — وكيف أجمع نقاط؟</summary><div id="lvGuide"></div></details>
+  </section>
+
   <!-- CHAT -->
   <section id="tab-chat" class="hidden">
     <div class="h2">الدواوين 💬</div>
@@ -122,6 +135,7 @@
 <nav class="bottom"><div class="in">
   <button data-tab="feed" class="on"><span>📺</span>الذكريات</button>
   <button data-tab="games"><span>🕹️</span>الألعاب</button>
+  <button data-tab="leaders"><span>🏆</span>الأبطال</button>
   <button data-tab="chat"><span>💬</span>الدواوين</button>
   <button data-tab="quiz"><span>🍟</span>خمّن وجوائز</button>
 </div></nav>
@@ -192,6 +206,14 @@
     <label class="check"><input type="checkbox" id="pMk"> <span>أبي توصلني أخبار وعروض زمن الأريل.</span></label>
     <button class="btn pri submit" id="profSave">حفظ</button>
     <button class="later" id="logout">تسجيل خروج من هذا الجهاز</button>
+  </div>
+</div>
+
+<!-- Player profile -->
+<div class="overlay top" id="playerOv">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="plName">
+    <div class="hd"><span></span><button class="x" id="plClose" aria-label="إغلاق">✕</button></div>
+    <div id="plBody"></div>
   </div>
 </div>
 

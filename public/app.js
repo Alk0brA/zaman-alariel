@@ -111,6 +111,7 @@ function writeErr(e){
   }catch(e){note("المنصة ما تستجيب الحين… حدّث الصفحة بعد شوي (أول تشغيل ممكن ياخذ دقيقة).");}
   await refresh();
   loadEvents();
+  loadLeaders(false);
   setInterval(pollV,4000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
   loadBest();
@@ -123,7 +124,7 @@ function applySettings(){
   const s=S.settings||{};const f=s.features||{};
   $("siteTitle").textContent=s.siteTitle||"زمن الأريل";
   const an=$("announce");an.textContent=s.announcement||"";an.classList.toggle("show",!!s.announcement);
-  const vis={feed:f.memories!==false,games:f.games!==false,chat:f.chat!==false,quiz:f.quiz!==false||f.stickers!==false};
+  const vis={feed:f.memories!==false,games:f.games!==false,leaders:f.leaders!==false,chat:f.chat!==false,quiz:f.quiz!==false||f.stickers!==false};
   document.querySelectorAll("nav.bottom button").forEach(b=>b.classList.toggle("hidden",!vis[b.dataset.tab]));
   if(!vis[S.tab]){const first=Object.keys(vis).find(k=>vis[k]);if(first)switchTab(first)}
   $("fab").classList.toggle("hidden",f.memories===false||S.tab!=="feed");
@@ -133,7 +134,7 @@ function setMe(me){
   S.me=me||null;
   if(!me){S.token="";LS.set("za_token","")}
   const c=$("userChip");
-  if(S.me){c.textContent="👤 "+S.me.display;c.classList.remove("cta")}else{c.textContent="سجّل دخولك";c.classList.add("cta")}
+  if(S.me){c.textContent=(S.lbMe?S.lbMe.icon+" ":"👤 ")+S.me.display+(S.lbMe?" · مستوى "+ar(S.lbMe.level):"");c.classList.remove("cta")}else{c.textContent="سجّل دخولك";c.classList.add("cta")}
   $("fNameWrap").classList.toggle("hidden",!!S.me||!!(S.settings&&S.settings.memoriesNeedReg));
 }
 
@@ -333,12 +334,13 @@ async function delMem(m){
 /* ---------- tabs ---------- */
 function switchTab(t){
   if(t!=="chat")leaveRoom();
-  S.tab=t;["feed","time","games","chat","quiz"].forEach(k=>$("tab-"+k).classList.toggle("hidden",k!==t));
+  S.tab=t;["feed","time","games","leaders","chat","quiz"].forEach(k=>$("tab-"+k).classList.toggle("hidden",k!==t));
   const navT=t==="time"?"feed":t;
   document.querySelectorAll("nav.bottom button").forEach(b=>b.classList.toggle("on",b.dataset.tab===navT));
   const f=(S.settings&&S.settings.features)||{};
   $("fab").classList.toggle("hidden",t!=="feed"||f.memories===false);
-  clearInterval(S.roomsTimer);
+  clearInterval(S.roomsTimer);clearInterval(S.lbTimer);
+  if(t==="leaders"){loadLeaders(true);loadActivity();let n=0;S.lbTimer=setInterval(()=>{if(document.hidden)return;loadActivity();if(++n%3===0)loadLeaders(true)},5000)}
   if(t==="chat"){loadRooms();S.roomsTimer=setInterval(()=>{if(!document.hidden&&!S.room)loadRooms()},10000)}
   if(t==="games")loadBest();
 }
@@ -367,7 +369,7 @@ function closeComposer(){$("composer").classList.remove("show");document.body.st
 function resetComposer(){$("fText").value="";$("fTitle").value="";$("fYear").value="";$("fCity").value="";S.cat="other";renderCatPicker();clearPhoto();$("partial").textContent="";S.answering=null}
 $("cmpClose").addEventListener("click",closeComposer);
 $("composer").addEventListener("click",e=>{if(e.target.id==="composer")closeComposer()});
-document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;["privOv","profOv"].forEach(id=>$(id).classList.remove("show"));if($("composer").classList.contains("show"))closeComposer()});
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;["privOv","profOv","playerOv"].forEach(id=>$(id).classList.remove("show"));if($("composer").classList.contains("show"))closeComposer()});
 $("fPhoto").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
   if(!/^image\//.test(f.type)){toast("اختر صورة فقط");return}
@@ -397,7 +399,7 @@ $("submitBtn").addEventListener("click",async()=>{
       year:isFinite(y)?y:null,city:$("fCity").value.trim().slice(0,30),prompt:S.answering||null,authorName,author:DEV,photo}});
     const t=tokens();t[d.id]=d.token;LS.set("za_tokens",t);
     closeComposer();resetComposer();
-    toast(d.photoFailed?"انبثّت ذكراك، بس الصورة ما ارتفعت":"انبثّت ذكراك 🎉");
+    toast(d.photoFailed?"انبثّت ذكراك، بس الصورة ما ارتفعت":"انبثّت ذكراك 🎉");setTimeout(()=>loadLeaders(false),2500);
     await refresh();
   }catch(e){writeErr(e)}
   finally{btn.disabled=false;btn.textContent="انشر الذكرى 📡"}
@@ -477,13 +479,93 @@ if(typeof ZAGames!=="undefined"){
       if(!ok)return{message:"سجّل دخولك المرة الجاية عشان تنحفظ نتيجتك"};
     }
     try{
-      const d=await api("/scores",{body:{game:id,score}});loadBest();
+      const d=await api("/scores",{body:{game:id,score}});loadBest();setTimeout(()=>loadLeaders(false),600);
       if(d.hidden)return{message:"🤫 انحفظت نتيجتك — لوحة الأبطال سرية وبتنعلن لاحقاً"+(d.best>score?" · أفضلك "+ar(d.best):"")};
       const pb=d.best!=null&&score>=d.best?" · رقم شخصي جديد! ⭐":"";
       return{message:(d.rank===1?"🥇 أنت الأول في لوحة الأبطال!":"ترتيبك #"+ar(d.rank)+" في لوحة الأبطال")+pb};
     }catch(e){if(e.code==="auth"){setMe(null)}return{message:"ما انحفظت النتيجة"}}
   });
 }
+
+/* ---------- heroes & levels ---------- */
+const GNAME=()=>{const o={};if(typeof ZAGames!=="undefined")ZAGames.list().forEach(x=>o[x.id]=x.emoji+" "+x.name);return o};
+async function loadLeaders(render){
+  try{
+    const d=await api("/players");S.lb=d;S.lbMe=d.me||null;
+    if(S.me)setMe(S.me);
+    if(d.me){const prev=+LS.get("za_lvl",0);if(prev&&d.me.level>prev)celebrateLevel(d.me);if(d.me.level!==prev)LS.set("za_lvl",d.me.level)}
+    if(render||S.tab==="leaders")renderLeaders();
+  }catch(e){}
+}
+function celebrateLevel(me){
+  sfxWin();confetti();
+  const ov=h("div",{class:"lvup",onclick:()=>ov.remove()},h("div",{class:"box"},h("div",{class:"ic"},me.icon),h("h2",null,"ترقّيت للمستوى "+ar(me.level)+"!"),h("p",null,"لقبك الجديد: «"+me.title+"»"),h("button",{class:"btn pri"},"يا سلام 🎉")));
+  document.body.append(ov);setTimeout(()=>{try{ov.remove()}catch(e){}},6000);
+}
+function sfxWin(){try{const ac=new (window.AudioContext||window.webkitAudioContext)();[523,659,784,1047,1319].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*0.11;o.type="square";o.frequency.value=f;g.gain.setValueAtTime(0.05,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+0.13)})}catch(e){}}
+function confetti(){const em=["🎉","⭐","🍟","📺","🕹️","🏆","✨"];for(let i=0;i<28;i++){const c=h("span",{class:"confetti",style:"left:"+Math.random()*100+"vw;animation-delay:"+(Math.random()*0.8)+"s;animation-duration:"+(1.8+Math.random()*1.4)+"s"},em[i%em.length]);document.body.append(c);setTimeout(()=>c.remove(),3800)}}
+function renderLeaders(){
+  const d=S.lb;if(!d)return;
+  const totalPlays=d.players.reduce((a,p)=>a+p.plays,0);
+  $("lbStats").replaceChildren(h("div",null,h("b",null,ar(d.total)),h("span",null,"لاعب")),h("div",null,h("b",null,ar(totalPlays)),h("span",null,"مرة لعب")),h("div",null,h("b",null,ar(d.players.filter(p=>p.level>=3).length)),h("span",null,"وصلوا مستوى ٣+")));
+  const mc=$("myCard");mc.replaceChildren();
+  if(d.me){
+    const m=d.me,pct=m.to?Math.round((m.xp-m.from)/(m.to-m.from)*100):100;
+    mc.append(h("div",{class:"top"},h("div",{class:"ic"},m.icon),h("div",null,h("div",{class:"nm",text:m.name}),h("div",{class:"tt"},"مستوى "+ar(m.level)+" · "+m.title)),h("div",{class:"rk"},h("b",null,"#"+ar(m.rank)),h("span",null,"من "+ar(d.total)))),
+      h("div",{class:"xpbar"},h("i",{style:"width:"+pct+"%"})),
+      h("div",{class:"xpt"},h("span",null,ar(m.xp)+" نقطة"),h("span",null,m.to?("باقي "+ar(m.to-m.xp)+" للمستوى "+ar(m.level+1)):"")),
+      d.above?h("div",{class:"chase"},"🔥 باقي لك "+ar(d.above.gap)+" نقطة وتتجاوز «"+d.above.name+"»!"):h("div",{class:"chase"},"👑 أنت متصدر الجيل! حافظ على مركزك"));
+  }else{
+    mc.append(h("div",{class:"top"},h("div",{class:"ic"},"🧒"),h("div",null,h("div",{class:"nm"},"وش مستواك أنت؟"),h("div",{class:"tt"},"سجّل وابدأ تجمع نقاط"))),
+      h("div",{class:"cta",style:"margin-top:10px"},h("button",{class:"btn pri",onclick:()=>openReg("سجّل اسمك عشان يطلع لك مستوى وترتيب بين الأبطال!")},"سجّل وادخل المنافسة 🏆")));
+  }
+  const pod=$("podium");pod.replaceChildren();
+  const top=d.players.slice(0,3);const order=[1,0,2];
+  for(const i of order){const p=top[i];if(!p)continue;
+    pod.append(h("button",{class:"pod p"+(i+1),onclick:()=>openPlayer(p.id)},
+      h("div",{class:"av"},i===0?h("span",{class:"crown"},"👑"):null,p.icon),h("div",{class:"pn",text:p.name}),h("div",{class:"pl"},"مستوى "+ar(p.level)),
+      h("div",{class:"st"},String(i+1),h("small",null,ar(p.xp)+" نقطة"))));}
+  if(!top.length)pod.append(h("div",{class:"empty"},h("div",{class:"big"},"🏆"),h("h3",{text:"المنصة تنتظر أول بطل!"}),h("p",{text:"العب أي لعبة أو شارك ذكرى وخذ المركز الأول."})));
+  const prev=LS.get("za_ranks",{}),next={};
+  const box=$("ranks");box.replaceChildren();
+  d.players.forEach(p=>{
+    next[p.id]=p.rank;const was=prev[p.id];
+    const mv=was==null?h("span",{class:"mv nw"},"جديد"):was>p.rank?h("span",{class:"mv up"},"▲"+(was-p.rank)):was<p.rank?h("span",{class:"mv dn"},"▼"+(p.rank-was)):h("span",{class:"mv"},"–");
+    box.append(h("button",{class:"rk-row"+(S.lbMe&&S.lbMe.id===p.id?" me":""),onclick:()=>openPlayer(p.id)},
+      h("span",{class:"n"},p.rank<=3?["🥇","🥈","🥉"][p.rank-1]:ar(p.rank)),mv,h("span",{class:"ic"},p.icon),
+      h("div",{class:"who"},h("b",{text:p.name}),h("small",null,"مستوى "+ar(p.level)+" · "+p.title)),
+      h("div",{class:"xp"},h("b",null,ar(p.xp)),h("small",null,"نقطة"))));
+  });
+  if(Object.keys(prev).length===0||S.lbSnapT==null||Date.now()-S.lbSnapT>60000){LS.set("za_ranks",next);S.lbSnapT=Date.now()}
+  const lg=$("lvGuide");lg.replaceChildren(h("div",{class:"howxp"},"🕹️ كل مرة تلعب +٣ · كل لعبة جديدة تجربها +١٥ · مركزك في لوحة كل لعبة لين +١٠٠ والأول +٥٠ زيادة",h("br"),"📺 كل ذكرى تنشرها +٤٠ · كل «أتذكرها» على ذكرياتك +٨ · 💬 كل رسالة في الدواوين +١"),
+    ...d.levels.map(l=>h("div",{class:"lvl-row"+(S.lbMe&&S.lbMe.level===l.level?" cur":"")},h("span",{class:"i"},l.icon),h("span",null,"مستوى "+ar(l.level)+" — "+l.title),h("span",{class:"x"},ar(l.xp)+" نقطة"))),
+    h("div",{class:"lvl-row"},h("span",{class:"i"},"♾️"),h("span",null,"وبعدها كل ٢٠٠٠ نقطة مستوى جديد")));
+}
+async function loadActivity(){
+  try{
+    const d=await api("/activity");const box=$("ticker");const names=GNAME();const seen=S.tkSeen||new Set();const first=!S.tkSeen;
+    box.replaceChildren(...d.items.slice(0,12).map(it=>{
+      const key=it.k+it.at+it.name;const isNew=!first&&!seen.has(key);seen.add(key);
+      const txt=it.k==="score"?("🕹️ "+it.name+" سجّل "+ar(it.score)+" في "+(names[it.game]||it.game)):it.k==="memory"?("📺 "+it.name+" نشر ذكرى"+(it.title?": «"+it.title+"»":"")):("👋 انضم "+it.name+" لجيل زمن الأريل");
+      return h("div",{class:"tk"+(isNew?" new":"")},h("span",{text:txt}),h("span",{class:"w"},ago(it.at)));
+    }));
+    if(!d.items.length)box.append(h("div",{class:"tk"},"ما فيه نشاط للحين — ابدأ أنت! 🚀"));
+    S.tkSeen=seen;
+  }catch(e){}
+}
+async function openPlayer(id){
+  const ov=$("playerOv"),body=$("plBody");body.replaceChildren(h("div",{class:"empty"},"جاري التحميل…"));ov.classList.add("show");
+  try{
+    const d=await api("/players/"+id);const p=d.player,names=GNAME();const pct=p.to?Math.round((p.xp-p.from)/(p.to-p.from)*100):100;
+    body.replaceChildren(h("div",{class:"pl-hero"},h("div",{class:"ic"},p.icon),h("h2",{id:"plName",text:p.name}),h("div",{class:"tt"},"مستوى "+ar(p.level)+" · "+p.title+" · الترتيب #"+ar(p.rank))),
+      h("div",{class:"xpbar",style:"background:var(--paper2)"},h("i",{style:"width:"+pct+"%"})),h("div",{class:"sub",style:"text-align:center"},ar(p.xp)+" نقطة"+(p.to?" · باقي "+ar(p.to-p.xp)+" للمستوى الجاي":"")),
+      h("div",{class:"pl-stats"},...[["🕹️",p.plays,"مرة لعب"],["🎮",p.kinds,"لعبة جرّبها"],["🥇",p.firsts,"لوحة يتصدرها"],["📺",p.memories,"ذكرى"],["🤝",p.remembered,"يتذكرون ذكرياته"],["💬",p.messages,"رسالة"]].map(([e,v,l])=>h("div",null,h("b",null,e+" "+ar(v)),h("span",null,l)))),
+      d.games.length?h("div",null,h("div",{class:"h2",style:"font-size:20px;margin:6px 0"},"أفضل نتائجه"),h("div",{class:"pl-games"},...d.games.map(g=>h("div",null,h("span",{text:names[g.game]||g.game}),h("b",null,(g.rank<=3?["🥇","🥈","🥉"][g.rank-1]+" ":"#"+ar(g.rank)+" · ")+ar(g.score)))))):h("p",{class:"sub",style:"text-align:center"},"ما لعب للحين في اللوحات العلنية"),
+      h("p",{class:"sub",style:"text-align:center;margin-top:10px"},"انضم "+ago(p.joined)));
+  }catch(e){body.replaceChildren(h("div",{class:"empty"},"تعذّر تحميل الملف"))}
+}
+$("plClose").addEventListener("click",()=>$("playerOv").classList.remove("show"));
+$("playerOv").addEventListener("click",e=>{if(e.target.id==="playerOv")$("playerOv").classList.remove("show")});
 
 /* ---------- chat ---------- */
 const COLORS=["#c0392b","#16a085","#8e44ad","#d35400","#2c3e50","#27ae60","#2980b9","#b7950b"];
@@ -528,7 +610,7 @@ async function loadRoom(full){
 }
 function msgEl(m){
   const mine=S.me&&m.user===S.me.id;
-  return h("div",{class:"cmsg"+(mine?" me":"")},mine?null:h("div",{class:"mn",style:"color:"+colorOf(m.user||m.name),text:m.name}),h("div",{class:"bub",text:m.text}),h("div",{class:"mt"},hhmm(m.at)))
+  return h("div",{class:"cmsg"+(mine?" me":"")},mine?null:h("div",{class:"mn",style:"color:"+colorOf(m.user||m.name)},m.name,m.lvl?h("span",{class:"lvb"},(m.icon||"")+" "+ar(m.lvl)):null),h("div",{class:"bub",text:m.text}),h("div",{class:"mt"},hhmm(m.at)))
 }
 $("chatForm").addEventListener("submit",async e=>{
   e.preventDefault();const inp=$("chatInput");const text=inp.value.trim();if(!text||!S.room)return;
@@ -538,7 +620,7 @@ $("chatForm").addEventListener("submit",async e=>{
     const d=await api("/rooms/"+S.room.id+"/messages",{body:{text}});
     const box=$("msgs");const er=$("emptyRoom");if(er)er.remove();
     if(d.message.id>S.lastMsgId){box.append(msgEl(d.message));S.lastMsgId=d.message.id}
-    box.scrollTop=box.scrollHeight;saveStats({chat:(+(S.stats.chat||0))+1});
+    box.scrollTop=box.scrollHeight;saveStats({chat:(+(S.stats.chat||0))+1});setTimeout(()=>loadLeaders(false),1500);
   }catch(x){inp.value=text;writeErr(x)}
 });
 

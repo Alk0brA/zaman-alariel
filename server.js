@@ -13,7 +13,7 @@ const SECRET = process.env.SESSION_SECRET || crypto.createHash("sha256").update(
 const pool = DB_URL ? new Pool({ connectionString: DB_URL, ssl: /localhost|127\.0\.0\.1|\/tmp/.test(DB_URL) ? false : { rejectUnauthorized: false }, max: 8 }) : null;
 
 const CATS = ["tv","kids","ball","chips","video","family","school","eid","games","other"];
-const GAMES = ["hara","hunt","maze","tower","crossing","racer","falcon","pong","bricks","invaders","rocks","shield","blocks","snake","brickrace"];
+const GAMES = ["hara","hunt","maze","tower","bomber","crossing","racer","falcon","runner","pong","bricks","invaders","rocks","shield","dates","blocks","snake","brickrace","tank"];
 const MAX_PHOTO = 2 * 1024 * 1024;
 let version = Date.now();      // يتغير مع الذكريات و"أتذكرها"
 let chatRev = Date.now();      // يتغير عند حذف رسائل أو تعديل الدواوين
@@ -25,9 +25,9 @@ const DEFAULTS = {
   regRequired: false,
   memoriesNeedReg: true,
   chatNeedsReg: true,
-  features: { memories: true, games: true, chat: true, quiz: true, stickers: true },
-  games: Object.fromEntries(["hara","hunt","maze","tower","crossing","racer","falcon","pong","bricks","invaders","rocks","shield","blocks","snake","brickrace"].map(g => [g, true])),
-  boards: Object.fromEntries(["hara","hunt","maze","tower","crossing","racer","falcon","pong","bricks","invaders","rocks","shield","blocks","snake","brickrace"].map(g => [g, "public"])),
+  features: { memories: true, games: true, chat: true, quiz: true, stickers: true, leaders: true },
+  games: Object.fromEntries(["hara","hunt","maze","tower","bomber","crossing","racer","falcon","runner","pong","bricks","invaders","rocks","shield","dates","blocks","snake","brickrace","tank"].map(g => [g, true])),
+  boards: Object.fromEntries(["hara","hunt","maze","tower","bomber","crossing","racer","falcon","runner","pong","bricks","invaders","rocks","shield","dates","blocks","snake","brickrace","tank"].map(g => [g, "public"])),
   hallOfFame: true,
   prompts: []
 };
@@ -238,6 +238,46 @@ function csvCell(v) {
   return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 
+// ---------- المستويات والترتيب ----------
+const LEVELS = [
+  [0, "ولد الحارة", "🧒"], [100, "صاحب الكورة", "⚽"], [250, "معدّل الأريل", "📡"], [500, "حكواتي الديوانية", "📻"],
+  [900, "بطل الأتاري", "🕹️"], [1400, "ملك الشريط", "📼"], [2100, "أسطورة السيقا", "🔵"], [3000, "عميد الجيل", "🎖️"],
+  [4200, "زعيم زمن الأريل", "👑"], [6000, "أسطورة الأريل", "🌟"]
+];
+function levelOf(xp) {
+  let i = 0; while (i + 1 < LEVELS.length && xp >= LEVELS[i + 1][0]) i++;
+  let lvl = i + 1, from = LEVELS[i][0], to = LEVELS[i + 1] ? LEVELS[i + 1][0] : null;
+  if (!LEVELS[i + 1]) { const extra = Math.floor((xp - from) / 2000); lvl += extra; from += extra * 2000; to = from + 2000; }
+  return { level: lvl, title: LEVELS[i][1], icon: LEVELS[i][2], from, to };
+}
+let PLAYERS = null, PLAYERS_AT = 0;
+async function computePlayers(force) {
+  if (!force && PLAYERS && Date.now() - PLAYERS_AT < 12000) return PLAYERS;
+  const [users, plays, mems, rems, msgs, ranks] = await Promise.all([
+    pool.query("select id,name,nickname,show_real,created_at from users where not banned"),
+    pool.query("select user_id, count(*)::int n, count(distinct game)::int g from scores where user_id is not null group by user_id"),
+    pool.query("select user_id, count(*)::int n from memories where user_id is not null group by user_id"),
+    pool.query("select m.user_id, count(*)::int n from remembers r join memories m on m.id=r.memory_id where m.user_id is not null group by m.user_id"),
+    pool.query("select user_id, count(*)::int n from messages where user_id is not null and not deleted group by user_id"),
+    pool.query("select game, user_id, s, rank() over (partition by game order by s desc)::int r from (select game, user_id, max(score) s from scores where user_id is not null group by game, user_id) b")
+  ]);
+  const by = (q) => { const m = {}; for (const r of q.rows) m[r.user_id] = r; return m; };
+  const P = by(plays), Mm = by(mems), R = by(rems), Ms = by(msgs);
+  const rk = {}; for (const r of ranks.rows) { if (SETTINGS.boards[r.game] === "hidden" || SETTINGS.games[r.game] === false) continue; (rk[r.user_id] = rk[r.user_id] || []).push(r); }
+  const list = users.rows.map(u => {
+    const pl = P[u.id] || { n: 0, g: 0 }, mm = (Mm[u.id] || {}).n || 0, rr = (R[u.id] || {}).n || 0, ms = (Ms[u.id] || {}).n || 0, rs = rk[u.id] || [];
+    const rankPts = rs.reduce((a, r) => a + Math.max(0, 110 - r.r * 10), 0);
+    const firsts = rs.filter(r => r.r === 1).length;
+    const xp = 20 + Math.min(pl.n, 400) * 3 + pl.g * 15 + rankPts + firsts * 50 + mm * 40 + rr * 8 + Math.min(ms, 500);
+    return Object.assign({ id: u.id, name: u.show_real || !u.nickname ? u.name : u.nickname, xp, plays: pl.n, kinds: pl.g, memories: mm, remembered: rr, messages: ms, firsts, joined: new Date(u.created_at).getTime() }, levelOf(xp));
+  }).sort((a, b) => b.xp - a.xp || a.joined - b.joined);
+  list.forEach((p, i) => p.rank = i + 1);
+  const map = {}; for (const p of list) map[p.id] = p;
+  PLAYERS = { list, map }; PLAYERS_AT = Date.now();
+  return PLAYERS;
+}
+const pubPlayer = p => p && ({ id: p.id, name: p.name, xp: p.xp, level: p.level, title: p.title, icon: p.icon, from: p.from, to: p.to, rank: p.rank, plays: p.plays, kinds: p.kinds, memories: p.memories, remembered: p.remembered, messages: p.messages, firsts: p.firsts, joined: p.joined });
+
 // ---------- static ----------
 const PUB = path.join(__dirname, "public");
 const STATIC = {
@@ -287,7 +327,7 @@ async function handle(req, res) {
     const showReal = nickname ? b.showReal !== false : true;
     await pool.query("insert into users (id,token_hash,name,nickname,show_real,email,phone,marketing,device_id) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
       [id, sha(token), name, nickname || null, showReal, email, phone || null, b.marketing === true, isDev(b.device) ? b.device : null]);
-    const u = (await pool.query("select * from users where id=$1", [id])).rows[0];
+    const u = (await pool.query("select * from users where id=$1", [id])).rows[0]; PLAYERS_AT = 0;
     return send(res, 200, { token, me: publicMe(u) });
   }
 
@@ -302,6 +342,33 @@ async function handle(req, res) {
   }
 
   if (M === "GET" && p === "/api/v") return send(res, 200, { v: version, c: chatRev });
+  if (M === "GET" && p === "/api/players") {
+    const P = await computePlayers(); const u = await userOf(req);
+    const me = u && P.map[u.id] ? P.map[u.id] : null;
+    const above = me && me.rank > 1 ? P.list[me.rank - 2] : null;
+    return send(res, 200, {
+      total: P.list.length, levels: LEVELS.map(([xp, title, icon], i) => ({ level: i + 1, xp, title, icon })),
+      players: P.list.slice(0, 50).map(pubPlayer),
+      me: pubPlayer(me), above: above ? { name: above.name, xp: above.xp, gap: above.xp - me.xp + 1 } : null
+    });
+  }
+  const pm = p.match(/^\/api\/players\/([0-9a-f-]{36})$/i);
+  if (M === "GET" && pm) {
+    const P = await computePlayers(); const pl = P.map[pm[1]]; if (!pl) return send(res, 404, { error: "not_found" });
+    const r = await pool.query("select game, s, r from (select game, user_id, s, rank() over (partition by game order by s desc)::int r from (select game, user_id, max(score) s from scores where user_id is not null group by game, user_id) b) t where user_id=$1 order by r, s desc", [pl.id]);
+    return send(res, 200, { player: pubPlayer(pl), games: r.rows.filter(x => SETTINGS.boards[x.game] !== "hidden" && SETTINGS.games[x.game] !== false).map(x => ({ game: x.game, score: x.s, rank: x.r })) });
+  }
+  if (M === "GET" && p === "/api/activity") {
+    const [sc, me, us] = await Promise.all([
+      pool.query("select 'score' k, game, name, score, user_id, created_at from scores order by id desc limit 25"),
+      pool.query("select 'memory' k, title, author_name name, official, created_at from memories where not official order by created_at desc limit 10"),
+      pool.query("select 'join' k, case when show_real or nickname is null then name else nickname end as name, created_at from users where not banned order by created_at desc limit 10")
+    ]);
+    const items = [...sc.rows.filter(x => SETTINGS.boards[x.game] !== "hidden" && SETTINGS.games[x.game] !== false), ...me.rows, ...us.rows]
+      .map(x => ({ k: x.k, game: x.game, name: x.name, score: x.score, title: x.title, at: new Date(x.created_at).getTime() }))
+      .sort((a, b) => b.at - a.at).slice(0, 25);
+    return send(res, 200, { items });
+  }
   if (M === "GET" && p === "/api/events") {
     const r = await pool.query("select id,year,emoji,title,body from events order by year, id");
     return send(res, 200, { events: r.rows });
@@ -353,7 +420,7 @@ async function handle(req, res) {
       if (photo) await client.query("insert into photos (memory_id,mime,data) values ($1,$2,$3)", [id, photo.mime, photo.data]);
       await client.query("commit");
     } catch (e) { await client.query("rollback").catch(() => {}); throw e; } finally { client.release(); }
-    version = Date.now();
+    version = Date.now(); PLAYERS_AT = 0;
     return send(res, 200, { id, token, photoFailed: !!b.photo && !photo });
   }
 
@@ -398,7 +465,8 @@ async function handle(req, res) {
       const q = after
         ? await pool.query("select id,user_id,name,text,created_at from messages where room_id=$1 and id>$2 and not deleted order by id asc limit 100", [roomId, after])
         : await pool.query("select * from (select id,user_id,name,text,created_at from messages where room_id=$1 and not deleted order by id desc limit 80) t order by id asc", [roomId]);
-      return send(res, 200, { rev: chatRev, online: onlineIn(roomId), messages: q.rows.map(x => ({ id: +x.id, user: x.user_id, name: x.name, text: x.text, at: new Date(x.created_at).getTime() })) });
+      const PL = await computePlayers();
+      return send(res, 200, { rev: chatRev, online: onlineIn(roomId), messages: q.rows.map(x => { const pl = x.user_id && PL.map[x.user_id]; return { id: +x.id, user: x.user_id, name: x.name, text: x.text, at: new Date(x.created_at).getTime(), lvl: pl ? pl.level : null, icon: pl ? pl.icon : null }; }) });
     }
     if (M === "POST") {
       if (!SETTINGS.features.chat) return send(res, 403, { error: "disabled" });
@@ -450,7 +518,7 @@ async function handle(req, res) {
     const b = await readJson(req, 1000);
     const score = Math.floor(+b.score);
     if (!GAMES.includes(b.game) || !Number.isFinite(score) || score < 0 || score > 1000000) return send(res, 400, { error: "invalid" });
-    await pool.query("insert into scores (game,user_id,name,score) values ($1,$2,$3,$4)", [b.game, u.id, displayName(u), score]);
+    await pool.query("insert into scores (game,user_id,name,score) values ($1,$2,$3,$4)", [b.game, u.id, displayName(u), score]); PLAYERS_AT = 0;
     const best = (await pool.query("select max(score)::int s from scores where game=$1 and user_id=$2", [b.game, u.id])).rows[0].s;
     if (SETTINGS.boards[b.game] === "hidden") return send(res, 200, { hidden: true, best });
     const rank = await pool.query("select count(*)::int + 1 as rank from (select max(score) s from scores where game=$1 group by coalesce(user_id::text,name)) t where t.s > $2", [b.game, score]);

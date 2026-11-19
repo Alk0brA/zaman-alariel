@@ -205,6 +205,7 @@ td.ltr{direction:ltr;text-align:left}
           <label class="switch"><input type="checkbox" data-f="games"> الألعاب</label>
           <label class="switch"><input type="checkbox" data-f="chat"> الدواوين</label>
           <label class="switch"><input type="checkbox" data-f="quiz"> خمّن والجوائز</label>
+          <label class="switch"><input type="checkbox" data-f="leaders"> الأبطال والمستويات</label>
         </div>
         <div class="panel"><h3>أسئلة "تذكر؟"</h3>
           <div class="field"><label for="sPrompts">سؤال في كل سطر <span class="hint">(اتركها فاضية للأسئلة الافتراضية)</span></label><textarea id="sPrompts" style="min-height:180px"></textarea></div>
@@ -218,8 +219,8 @@ td.ltr{direction:ltr;text-align:left}
 
 <script>
 "use strict";
-const GAME_NAMES={hara:"🏃 مغامرة الحارة",hunt:"🦆 قنص الطيور",maze:"😮 متاهة أبو فم",crossing:"🦎 عبور الضب",racer:"🏎️ سباق الطريق",pong:"🏓 تنس الطاولة",bricks:"🧱 تكسير الطوب",invaders:"👾 حرب الفضاء",rocks:"☄️ صخور الفضاء",blocks:"🟫 الطوب المتساقط",snake:"🐍 الثعبان",shield:"🛡️ درع المدينة",falcon:"✈️ صقر الصحراء",tower:"🍉 صعود البرج",brickrace:"🚗 سباق الطوب"};
-const GAME_CONSOLE={hara:"🎮 كمبيوتر العائلة",hunt:"🎮 كمبيوتر العائلة",maze:"🎮 كمبيوتر العائلة",crossing:"🔵 السيقا",racer:"🔵 السيقا",pong:"🕹️ الأتاري",bricks:"🕹️ الأتاري",invaders:"🕹️ الأتاري",rocks:"🕹️ الأتاري",blocks:"🧱 جهاز الطوب",snake:"🧱 جهاز الطوب",shield:"🕹️ الأتاري",falcon:"🔵 السيقا",tower:"🎮 كمبيوتر العائلة",brickrace:"🧱 جهاز الطوب"};
+const GAME_NAMES={hara:"🏃 مغامرة الحارة",hunt:"🦆 قنص الطيور",maze:"😮 متاهة أبو فم",crossing:"🦎 عبور الضب",racer:"🏎️ سباق الطريق",pong:"🏓 تنس الطاولة",bricks:"🧱 تكسير الطوب",invaders:"👾 حرب الفضاء",rocks:"☄️ صخور الفضاء",blocks:"🟫 الطوب المتساقط",snake:"🐍 الثعبان",shield:"🛡️ درع المدينة",falcon:"✈️ صقر الصحراء",tower:"🍉 صعود البرج",brickrace:"🚗 سباق الطوب",dates:"🌴 مطر التمر",bomber:"💣 مفجّر الحارة",runner:"🦌 ركضة الغزال",tank:"🪖 دبابة الطوب"};
+const GAME_CONSOLE={hara:"🎮 كمبيوتر العائلة",hunt:"🎮 كمبيوتر العائلة",maze:"🎮 كمبيوتر العائلة",crossing:"🔵 السيقا",racer:"🔵 السيقا",pong:"🕹️ الأتاري",bricks:"🕹️ الأتاري",invaders:"🕹️ الأتاري",rocks:"🕹️ الأتاري",blocks:"🧱 جهاز الطوب",snake:"🧱 جهاز الطوب",shield:"🕹️ الأتاري",falcon:"🔵 السيقا",tower:"🎮 كمبيوتر العائلة",brickrace:"🧱 جهاز الطوب",dates:"🕹️ الأتاري",bomber:"🎮 كمبيوتر العائلة",runner:"🔵 السيقا",tank:"🧱 جهاز الطوب"};
 const $=id=>document.getElementById(id);
 let TOKEN="";try{TOKEN=sessionStorage.getItem("za_admin")||""}catch(e){}
 let SETTINGS=null,USERS=[],MEMS=[];
