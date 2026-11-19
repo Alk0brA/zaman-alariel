@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>زمن الأريل</title>
+<meta name="description" content="زمن الأريل — منصة تفاعلية لذكريات جيل الثمانينات والتسعينات: التلفزيون والأريل، برامج الأطفال، الكورة، الشبسات وجوائزها.">
+<meta property="og:title" content="زمن الأريل">
+<meta property="og:description" content="أضف ذكراك من أيام الأريل والفيديو والشبسات، وشوف مين يتذكرها معك.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f6ecda;--paper2:#efe0c4;--ink:#2b1d14;--muted:#7a6553;--wood:#5a3825;--wood2:#7c4f32;--orange:#e2672b;--teal:#17807d;--mustard:#e8b33a;--red:#c43d32;--card:#fffaf1;--line:#e3d2b4;--screen:#14201f}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Tajawal,system-ui,sans-serif;background:var(--paper);background-image:radial-gradient(rgba(90,56,37,.07) 1px,transparent 1px);background-size:14px 14px;color:var(--ink);padding-bottom:150px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px}
+.display{font-family:Lalezar,Tajawal,sans-serif;font-weight:400;letter-spacing:.3px}
+
+/* Hero TV */
+.hero{padding:26px 0 8px;position:relative}
+.antenna{display:block;margin:0 auto -6px;width:150px;height:60px}
+.tv{background:linear-gradient(160deg,var(--wood2),var(--wood));border-radius:22px;padding:14px;display:flex;gap:12px;box-shadow:0 10px 0 #3e2618,0 14px 24px rgba(0,0,0,.18)}
+.screen{flex:1;background:radial-gradient(ellipse at center,#24403d 0%,var(--screen) 75%);border-radius:18px/26px;padding:22px 16px;text-align:center;color:#f3f7e9;position:relative;overflow:hidden;min-height:132px;box-shadow:inset 0 0 30px rgba(0,0,0,.7)}
+.screen h1{margin:0;font-size:44px;line-height:1.1;color:#fff6d6;text-shadow:0 0 12px rgba(255,220,140,.55),2px 0 rgba(255,60,60,.35),-2px 0 rgba(60,200,255,.35)}
+.screen p{margin:6px 0 0;font-size:15px;color:#cfe3d9}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px);pointer-events:none;animation:flick 4s infinite}
+@keyframes flick{0%,96%,100%{opacity:1}97%{opacity:.6}98%{opacity:1}99%{opacity:.75}}
+.knobs{width:54px;display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:6px}
+.knob{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9c3a2,#8d6a48);box-shadow:0 2px 0 #3e2618}
+.knob.s{width:26px;height:26px}
+.offbtn{margin-top:auto;width:40px;height:40px;border-radius:10px;border:0;background:#2e1c11;color:#fff;font-size:18px}
+.speaker{width:40px;height:30px;background:repeating-linear-gradient(0deg,#3e2618 0 2px,transparent 2px 5px);border-radius:4px}
+.counters{display:flex;gap:8px;margin:18px 0 6px}
+.counter{flex:1;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:8px 6px;text-align:center}
+.counter b{display:block;font-family:Lalezar;font-size:26px;font-weight:400;color:var(--orange);line-height:1.2}
+.counter span{font-size:12.5px;color:var(--muted)}
+
+/* banner */
+.note{margin:10px 0;padding:10px 14px;border-radius:12px;background:#fff1d0;border:1.5px dashed var(--mustard);font-size:14px;display:none}
+.note.show{display:block}
+
+/* Prompt */
+.prompt{margin:14px 0;background:var(--teal);color:#fff;border-radius:18px;padding:16px 16px 14px;position:relative;overflow:hidden}
+.prompt::after{content:"";position:absolute;left:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08)}
+.prompt .lbl{font-family:Lalezar;font-size:22px;color:var(--mustard)}
+.prompt .q{font-size:18px;font-weight:700;margin:2px 0 12px;min-height:56px}
+.prompt .row{display:flex;gap:8px;position:relative;z-index:1}
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:800;font-size:15px}
+.btn.pri{background:var(--orange);color:#fff;box-shadow:0 3px 0 #a9461a}
+.btn.pri:active{transform:translateY(2px);box-shadow:0 1px 0 #a9461a}
+.btn.ghost{background:rgba(255,255,255,.16);color:#fff}
+.btn.soft{background:var(--paper2);color:var(--ink)}
+.btn:disabled{opacity:.55}
+
+/* filters */
+.filters{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip.x{background:var(--mustard);border-color:var(--mustard)}
+.sortrow{display:flex;justify-content:space-between;align-items:center;margin:2px 0 8px;font-size:14px;color:var(--muted)}
+.seg{display:flex;background:var(--paper2);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* cards */
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:14px 14px 10px;margin-bottom:12px;box-shadow:0 3px 0 var(--line)}
+.card .top{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.tag{font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--paper2)}
+.tag.year{background:var(--ink);color:var(--mustard);font-family:Lalezar;font-weight:400;font-size:14px;padding:1px 10px}
+.tag.city{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:500}
+.card h3{margin:2px 0 4px;font-size:19px;font-weight:800;line-height:1.35}
+.card .ans{font-size:12.5px;color:var(--teal);font-weight:700;margin-bottom:4px}
+.card .txt{white-space:pre-wrap;font-size:16px;margin:0 0 10px;word-break:break-word}
+.card img{width:100%;max-height:420px;object-fit:cover;border-radius:12px;margin-bottom:10px;filter:sepia(.18) contrast(1.02);border:6px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.card .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px dashed var(--line);padding-top:8px}
+.who{font-size:13px;color:var(--muted)}
+.who b{color:var(--ink)}
+.rem{border:1.5px solid var(--orange);background:transparent;color:var(--orange);border-radius:999px;padding:6px 12px;font-weight:800;font-size:14px;display:flex;align-items:center;gap:6px;position:relative}
+.rem.on{background:var(--orange);color:#fff}
+.rem.own{border-color:var(--line);color:var(--muted);cursor:default}
+.del{border:0;background:transparent;color:var(--muted);font-size:12.5px;padding:4px 6px}
+.del.sure{color:var(--red);font-weight:800}
+.pop{position:absolute;pointer-events:none;font-size:22px;animation:pop 900ms ease-out forwards}
+@keyframes pop{to{transform:translateY(-60px) scale(1.4);opacity:0}}
+.empty{text-align:center;padding:30px 16px;color:var(--muted)}
+.empty .big{font-size:44px}
+.empty h3{color:var(--ink);margin:6px 0}
+
+/* timeline */
+.tl{position:relative;padding-right:22px;margin-top:8px}
+.tl::before{content:"";position:absolute;right:8px;top:6px;bottom:6px;width:3px;background:var(--line);border-radius:3px}
+.tly{position:relative;margin-bottom:10px;display:flex;align-items:center;gap:10px;width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;text-align:right;color:var(--ink)}
+.tly::before{content:"";position:absolute;right:-20px;width:13px;height:13px;border-radius:50%;background:var(--orange);border:3px solid var(--paper)}
+.tly .y{font-family:Lalezar;font-size:24px;width:62px;flex:none}
+.tly .bar{flex:1;height:10px;background:var(--paper2);border-radius:6px;overflow:hidden}
+.tly .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mustard),var(--orange));border-radius:6px}
+.tly .n{font-weight:800;font-size:14px;width:56px;text-align:left;flex:none}
+.dec{font-family:Lalezar;font-size:22px;margin:18px 0 8px;color:var(--teal)}
+
+/* quiz */
+.quiz{background:var(--screen);color:#f3f7e9;border-radius:20px;padding:18px;margin-top:10px;position:relative;overflow:hidden}
+.quiz .meta{display:flex;justify-content:space-between;font-size:14px;color:#9fc4b9;margin-bottom:6px}
+.quiz .qq{font-size:18px;font-weight:700;margin:6px 0 14px;min-height:84px}
+.opts{display:grid;gap:8px}
+.opt{border:2px solid #3b5552;background:#1d2e2c;color:#fff;border-radius:12px;padding:11px 14px;font-size:16px;font-weight:700;text-align:right}
+.opt.ok{background:#1f7a4d;border-color:#38c180}
+.opt.bad{background:#7e2a23;border-color:#e0645a}
+.quiz .fb{min-height:24px;margin:10px 0 4px;font-weight:700;color:var(--mustard)}
+.qend{text-align:center;padding:10px 0}
+.qend .sc{font-family:Lalezar;font-size:60px;color:var(--mustard);line-height:1.1}
+
+/* stickers */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.stk{background:var(--card);border:2px dashed var(--line);border-radius:16px;padding:12px 6px;text-align:center;min-height:132px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.stk .e{font-size:38px;line-height:1.2}
+.stk b{font-size:14px}
+.stk small{font-size:11.5px;color:var(--muted);line-height:1.35}
+.stk.on{border-style:solid;border-color:var(--mustard);background:linear-gradient(160deg,#fff7e2,#ffe9b8);transform:rotate(-1.5deg)}
+.stk.on:nth-child(even){transform:rotate(1.5deg)}
+.stk.off .e{filter:grayscale(1) brightness(.4);opacity:.35}
+.progress{background:var(--paper2);height:12px;border-radius:8px;overflow:hidden;margin:6px 0 2px}
+.progress i{display:block;height:100%;background:var(--orange)}
+.h2{font-family:Lalezar;font-size:26px;margin:16px 0 0}
+.sub{color:var(--muted);font-size:14.5px;margin:0}
+
+/* nav */
+nav.bottom{position:fixed;bottom:0;left:0;right:0;background:var(--wood);display:flex;justify-content:center;z-index:20;padding:6px 6px 8px;box-shadow:0 -4px 14px rgba(0,0,0,.15)}
+nav.bottom .in{display:flex;max-width:720px;width:100%}
+nav.bottom button{flex:1;border:0;background:transparent;color:#e8d5bb;font-size:12.5px;font-weight:700;padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:1px;border-radius:10px}
+nav.bottom button span{font-size:21px}
+nav.bottom button.on{background:rgba(255,255,255,.12);color:#fff}
+.fab{position:fixed;left:16px;bottom:84px;z-index:21;border:0;background:var(--orange);color:#fff;font-weight:800;font-size:16px;border-radius:999px;padding:13px 20px;box-shadow:0 4px 0 #a9461a,0 8px 18px rgba(0,0,0,.2)}
+.fab:active{transform:translateY(2px)}
+
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(30,18,10,.55);z-index:40;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{background:var(--paper);width:100%;max-width:720px;max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:16px 16px 22px}
+.sheet .hd{display:flex;justify-content:space-between;align-items:center}
+.sheet h2{margin:0;font-family:Lalezar;font-weight:400;font-size:26px}
+.x{border:0;background:var(--paper2);width:36px;height:36px;border-radius:50%;font-size:18px}
+.field{margin-top:12px}
+.field label{display:block;font-weight:800;font-size:14px;margin-bottom:5px}
+.field .hint{font-weight:500;color:var(--muted);font-size:12.5px}
+textarea,input[type=text],select{width:100%;font-family:inherit;font-size:16px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:11px 12px;color:var(--ink)}
+textarea{min-height:130px;resize:vertical}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--teal);outline-offset:1px}
+.tools{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.tbtn{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;font-weight:800;font-size:14px;color:var(--ink);display:flex;align-items:center;gap:6px}
+.tbtn.rec{background:var(--red);color:#fff;border-color:var(--red);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(196,61,50,.2)}}
+.partial{color:var(--muted);font-size:14px;min-height:0;margin-top:4px}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.two{display:flex;gap:10px}
+.two>div{flex:1}
+.photo-prev{margin-top:8px;position:relative;display:none}
+.photo-prev.show{display:block}
+.photo-prev img{width:100%;max-height:240px;object-fit:cover;border-radius:12px}
+.photo-prev button{position:absolute;top:8px;left:8px}
+.ansbox{background:var(--teal);color:#fff;border-radius:12px;padding:8px 12px;font-size:14px;margin-top:10px;display:none}
+.ansbox.show{display:block}
+.submit{width:100%;margin-top:16px;padding:14px;font-size:17px}
+
+/* toast */
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-120px);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:12px;font-weight:700;z-index:80;transition:transform .3s;max-width:92vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* signoff */
+.signoff{position:fixed;inset:0;z-index:90;background:#111;display:none;flex-direction:column}
+.signoff.show{display:flex}
+.bars{flex:6;display:flex}
+.bars i,.bars2 i{flex:1}
+.bars2{flex:1;display:flex}
+.bars3{flex:1.4;display:flex;background:#131313}
+.signoff .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px}
+.signoff .box{background:rgba(0,0,0,.82);color:#fff;border:3px solid #fff;padding:22px 20px;text-align:center;max-width:420px;width:100%}
+.signoff .box h2{font-family:Lalezar;font-weight:400;font-size:40px;margin:0;line-height:1.2}
+.signoff .box p{margin:8px 0 16px;color:#ddd}
+.signoff .clock{font-family:Lalezar;font-size:24px;color:var(--mustard)}
+.signoff .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <svg class="antenna" viewBox="0 0 150 60" aria-hidden="true">
+      <line x1="75" y1="56" x2="22" y2="4" stroke="#5a3825" stroke-width="4" stroke-linecap="round"/>
+      <line x1="75" y1="56" x2="128" y2="4" stroke="#5a3825" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="22" cy="4" r="4" fill="#e2672b"/><circle cx="128" cy="4" r="4" fill="#e2672b"/>
+      <path d="M55 60 Q75 40 95 60Z" fill="#5a3825"/>
+    </svg>
+    <div class="tv">
+      <div class="screen">
+        <div class="scan"></div>
+        <h1 class="display">زمن الأريل</h1>
+        <p>ذكريات جيل الثمانينات والتسعينات — أضف ذكراك وشوف مين يتذكرها معك</p>
+      </div>
+      <div class="knobs">
+        <div class="knob"></div><div class="knob s"></div>
+        <div class="speaker"></div>
+        <button class="offbtn" id="offBtn" title="نهاية الإرسال" aria-label="نهاية الإرسال">📴</button>
+      </div>
+    </div>
+    <div class="counters">
+      <div class="counter"><b id="cMem">0</b><span>ذكرى</span></div>
+      <div class="counter"><b id="cRem">0</b><span>"أتذكرها"</span></div>
+      <div class="counter"><b id="cPpl">0</b><span>مشارك</span></div>
+    </div>
+  </header>
+
+  <div class="note" id="note"></div>
+
+  <!-- FEED -->
+  <section id="tab-feed">
+    <div class="prompt">
+      <div class="lbl">تذكر؟</div>
+      <div class="q" id="promptQ"></div>
+      <div class="row">
+        <button class="btn pri" id="promptAns">جاوب عليها</button>
+        <button class="btn ghost" id="promptNext">سؤال ثاني ↻</button>
+      </div>
+    </div>
+    <div class="filters" id="decFilters"></div>
+    <div class="filters" id="catFilters"></div>
+    <div class="sortrow">
+      <span id="feedCount"></span>
+      <div class="seg"><button data-sort="new" class="on">الأحدث</button><button data-sort="top">الأكثر تذكّراً</button></div>
+    </div>
+    <div id="feed"></div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="tab-time" class="hidden">
+    <div class="h2">الخط الزمني</div>
+    <p class="sub">كل سنة وكم ذكرى انضافت عنها. اضغط على السنة وتشوف ذكرياتها.</p>
+    <div id="timeline"></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="tab-quiz" class="hidden">
+    <div class="h2">خمّن البرنامج</div>
+    <p class="sub">نوصف لك برنامج أو مسلسل من أيام زمان، وأنت تخمّن وش هو.</p>
+    <div class="quiz" id="quiz"></div>
+  </section>
+
+  <!-- STICKERS -->
+  <section id="tab-stk" class="hidden">
+    <div class="h2">جوائز الشبس</div>
+    <p class="sub">مثل جوائز أكياس الشبس زمان، كل ما شاركت أكثر طلعت لك جائزة جديدة.</p>
+    <div class="progress"><i id="stkBar" style="width:0"></i></div>
+    <p class="sub" id="stkCount"></p>
+    <div class="grid" id="stickers"></div>
+  </section>
+</div>
+
+<button class="fab" id="fab">＋ أضف ذكرى</button>
+
+<nav class="bottom"><div class="in">
+  <button data-tab="feed" class="on"><span>📺</span>الذكريات</button>
+  <button data-tab="time"><span>📅</span>الخط الزمني</button>
+  <button data-tab="quiz"><span>❓</span>خمّن</button>
+  <button data-tab="stk"><span>🍟</span>جوائزي</button>
+</div></nav>
+
+<!-- Composer -->
+<div class="overlay" id="composer">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cmpTitle">
+    <div class="hd"><h2 id="cmpTitle">ذكرى جديدة</h2><button class="x" id="cmpClose" aria-label="إغلاق">✕</button></div>
+    <div class="ansbox" id="ansBox"></div>
+    <div class="field">
+      <label for="fText">اكتب سالفتك <span class="hint">— أو سجّلها بصوتك</span></label>
+      <textarea id="fText" placeholder="مثال: كنا نطلع السطح أنا وأخوي نعدّل الأريل، وأبوي تحت يصارخ: خلاص! خلاص! لا رجعت الصورة…"></textarea>
+      <div class="partial" id="partial"></div>
+      <div class="tools">
+        <button class="tbtn hidden" id="micBtn" type="button">🎙️ سجّل بصوتك</button>
+        <label class="tbtn hidden" id="photoLbl">📷 أضف صورة<input type="file" id="fPhoto" accept="image/*" hidden></label>
+      </div>
+      <div class="photo-prev" id="photoPrev"><img id="photoImg" alt="معاينة الصورة"><button class="x" id="photoRm" type="button" aria-label="إزالة الصورة">✕</button></div>
+    </div>
+    <div class="field">
+      <label for="fTitle">عنوان قصير</label>
+      <input type="text" id="fTitle" maxlength="70" placeholder="مثال: معركة الأريل فوق السطح">
+    </div>
+    <div class="field">
+      <label>التصنيف</label>
+      <div class="cats" id="fCats"></div>
+    </div>
+    <div class="field two">
+      <div><label for="fYear">السنة تقريباً</label><select id="fYear"></select></div>
+      <div><label for="fCity">المدينة <span class="hint">(اختياري)</span></label><input type="text" id="fCity" maxlength="30" placeholder="الرياض، جدة…"></div>
+    </div>
+    <div class="field">
+      <label for="fName">اسمك أو لقبك</label>
+      <input type="text" id="fName" maxlength="30" placeholder="مثال: أبو فهد">
+    </div>
+    <button class="btn pri submit" id="submitBtn">انشر الذكرى 📡</button>
+  </div>
+</div>
+
+<!-- Sign-off -->
+<div class="signoff" id="signoff" aria-live="polite">
+  <div class="bars"><i style="background:#c0c0c0"></i><i style="background:#c0c000"></i><i style="background:#00c0c0"></i><i style="background:#00c000"></i><i style="background:#c000c0"></i><i style="background:#c00000"></i><i style="background:#0000c0"></i></div>
+  <div class="bars2"><i style="background:#0000c0"></i><i style="background:#131313"></i><i style="background:#c000c0"></i><i style="background:#131313"></i><i style="background:#00c0c0"></i><i style="background:#131313"></i><i style="background:#c0c0c0"></i></div>
+  <div class="bars3"><i style="flex:1.2;background:#00214c"></i><i style="flex:1.2;background:#fff"></i><i style="flex:1.2;background:#32006a"></i><i style="flex:3"></i></div>
+  <div class="msg"><div class="box">
+    <div class="clock" id="soClock"></div>
+    <h2>انتهى الإرسال</h2>
+    <p>نلقاكم غداً إن شاء الله… تصبحون على خير 🌙</p>
+    <div class="row">
+      <button class="btn pri" id="soStay">أبي أسهر 🌙</button>
+      <button class="btn soft" id="soTone">🔊 صوت الإرسال</button>
+    </div>
+  </div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+
+const CATS={
+  tv:{e:"📡",n:"التلفزيون والقنوات"},
+  kids:{e:"🧸",n:"برامج الأطفال والكرتون"},
+  ball:{e:"⚽",n:"الكورة والحارة"},
+  chips:{e:"🍟",n:"الشبسات والحلويات"},
+  video:{e:"📼",n:"الفيديو والكستات"},
+  family:{e:"🏠",n:"الجمعات العائلية"},
+  school:{e:"🎒",n:"المدرسة"},
+  eid:{e:"🌙",n:"رمضان والعيد"},
+  games:{e:"🕹️",n:"الألعاب والأتاري"},
+  other:{e:"✨",n:"أخرى"}
+};
+const PROMPTS=[
+ "متى كانت القناة الأولى تقفل عندكم بالليل؟ ووش كنتم تسوون بعدها؟",
+ "مين كان المسؤول يطلع السطح يعدّل الأريل؟ وكيف كانت التعليمات من تحت؟",
+ "وش أغلى جايزة طلعت لك من كيس شبس؟ ولا عمرك ما كمّلت المجموعة؟",
+ "وش أول فيلم شفتوه على الفيديو؟ ومن وين كنتم تأجرون الأشرطة؟",
+ "وين كان ملعب الحارة؟ ومين صاحب الكورة اللي إذا زعل خذها وراح؟",
+ "وش برنامج الأطفال اللي ما تفوّته أبد؟ وكم الساعة كان يبدأ؟",
+ "كيف كانت جمعة العيد عند بيت الجد أو الجدة؟",
+ "وش أول جهاز ألعاب دخل بيتكم؟ ومين كان يحتكره؟",
+ "تذكر شريط كاست كنتم تشغلونه بالسيارة في كل مشوار؟",
+ "وش كنت تشتري بالفسحة؟ وبكم كانت؟",
+ "مين أول بيت في الحارة ركّب دش؟",
+ "وش المسلسل اللي كانت العائلة كلها تتجمع عشانه بعد الفطور في رمضان؟",
+ "وش أكثر لعبة شعبية كنتم تلعبونها بالحارة؟",
+ "تذكر أول مرة سجلت صوتك على شريط كاست؟"
+];
+const QUIZ=[
+ {q:"برنامج أطفال تعليمي لتعليم الحروف العربية، من أشهر شخصياته (أبو الحروف).",a:"المناهل",o:["افتح يا سمسم","المناهل","سلامتك","المدرسة"]},
+ {q:"نسخة عربية من برنامج دمى عالمي، فيه شخصيات مثل نعمان وملسون وكعكي.",a:"افتح يا سمسم",o:["افتح يا سمسم","المناهل","سلامتك","مدينة الدمى"]},
+ {q:"برنامج أطفال كويتي توعوي يعلّم الصحة والنظافة والعادات الصحية بأسلوب ممتع.",a:"سلامتك",o:["سلامتك","المناهل","افتح يا سمسم","صحتك بالدنيا"]},
+ {q:"كرتون عن فتى قوي يعيش في جزيرة بعد كارثة عظيمة، ويبحث عن صديقته اللي خطفوها لمدينة اسمها (إندستريا).",a:"عدنان ولينا",o:["عدنان ولينا","سندباد","جزيرة الكنز","ماوكلي"]},
+ {q:"كرتون كورة، بطله لاعب يسدد تسديدات خيالية والملعب يطول حلقات كاملة قبل ما يوصل المرمى.",a:"كابتن ماجد",o:["الهداف","كابتن ماجد","أبطال الملاعب","كابتن رابح"]},
+ {q:"كرتون روبوت عملاق يقوده (دايسكي)، ويدافع عن الأرض ضد غزاة من الفضاء.",a:"جريندايزر",o:["مازنجر","جريندايزر","فولترون","الرجل الحديدي"]},
+ {q:"كائنات زرقاء صغيرة تعيش في قرية من بيوت على شكل فطر، وعدوها ساحر شرير معه قطوه.",a:"السنافر",o:["السنافر","الدببة المحبوبة","ساندي بل","الحوت الأبيض"]},
+ {q:"مسلسل كوميدي سعودي رمضاني، كل حلقة قصة مستقلة، بطولة ناصر القصبي وعبدالله السدحان.",a:"طاش ما طاش",o:["طاش ما طاش","درب الزلق","خالتي قماشة","سيلفي"]},
+ {q:"برنامج مسابقات ثقافية على التلفزيون السعودي، ارتبط اسمه بالمذيع القدير ماجد الشبل.",a:"حروف وألوف",o:["من سيربح المليون","حروف وألوف","بنك المعلومات","المسابقة الكبرى"]},
+ {q:"كرتون عن بحّار شاب يسافر في رحلات مغامرة، ومعه طائر يتكلم.",a:"مغامرات سندباد",o:["مغامرات سندباد","جزيرة الكنز","عدنان ولينا","علاء الدين"]}
+];
+const STICKERS=[
+ {e:"🍟",n:"أول ذكرى",d:"أضف ذكراك الأولى",t:s=>s.mine>=1},
+ {e:"📻",n:"حكواتي الحارة",d:"أضف ٥ ذكريات",t:s=>s.mine>=5},
+ {e:"📼",n:"أرشيف العائلة",d:"أضف ١٠ ذكريات",t:s=>s.mine>=10},
+ {e:"📷",n:"صاحب الصورة",d:"أضف ذكرى معها صورة",t:s=>s.photos>=1},
+ {e:"🎨",n:"متنوّع",d:"اكتب في ٣ تصنيفات",t:s=>s.cats>=3},
+ {e:"🕹️",n:"ولد الثمانينات",d:"ذكرى قبل ١٩٩٠",t:s=>s.old>=1},
+ {e:"🤝",n:"ذاكرة جماعية",d:"اضغط (أتذكرها) ٥ مرات",t:s=>s.gave>=5},
+ {e:"⭐",n:"كلنا عشناها",d:"ذكرى يتذكرها ٣ أشخاص",t:s=>s.bestOne>=3},
+ {e:"🏆",n:"نجم الجلسة",d:"١٥ (أتذكرها) على ذكرياتك",t:s=>s.got>=15},
+ {e:"🔤",n:"أبو الحروف",d:"جاوب ٥ صح في خمّن",t:s=>s.quiz>=5},
+ {e:"🧠",n:"عبقري الشاشة",d:"العلامة الكاملة في خمّن",t:s=>s.quiz>=QUIZ.length},
+ {e:"🌙",n:"سهران",d:"افتح المنصة بعد نهاية الإرسال",t:s=>s.night}
+];
+
+const CFG=window.ZA_CONFIG||{};
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
+function uid(){try{if(crypto&&crypto.randomUUID)return crypto.randomUUID()}catch(e){}return "x"+Date.now().toString(36)+Math.random().toString(36).slice(2,10)}
+const DEV=LS.get("za_dev",null)||(()=>{const d=uid();LS.set("za_dev",d);return d})();
+
+const S={B:null,mode:"local",mems:[],rems:[],stats:LS.get("za_stats",{}),loaded:false,tab:"feed",fCat:"all",fDec:"all",fYear:null,sort:"new",
+  promptI:Math.floor(Math.random()*PROMPTS.length),answering:null,cat:"other",file:null,listening:false,busy:{},delArm:null,prevUnlocked:null,q:null};
+
+const $=id=>document.getElementById(id);
+function h(tag,attrs,...kids){const el=document.createElement(tag);if(attrs)for(const k in attrs){const v=attrs[k];if(v==null||v===false)continue;if(k==="class")el.className=v;else if(k==="text")el.textContent=v;else if(k.startsWith("on"))el.addEventListener(k.slice(2),v);else el.setAttribute(k,v===true?"":v)}for(const c of kids.flat()){if(c==null||c===false)continue;el.append(c.nodeType?c:document.createTextNode(String(c)))}return el}
+const ar=n=>Number(n).toLocaleString("ar-SA");
+let toastT;function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2800)}
+function note(msg){const n=$("note");n.textContent=msg||"";n.classList.toggle("show",!!msg)}
+const rtf=(()=>{try{return new Intl.RelativeTimeFormat("ar",{numeric:"auto"})}catch(e){return null}})();
+function ago(ts){if(!ts||!rtf)return"";const s=(ts-Date.now())/1000;const a=Math.abs(s);if(a<60)return"الحين";if(a<3600)return rtf.format(Math.round(s/60),"minute");if(a<86400)return rtf.format(Math.round(s/3600),"hour");return rtf.format(Math.round(s/86400),"day")}
+function nameOf(m){if(m.author===DEV)return"أنت";return m.authorName||"واحد من الجيل"}
+function saveStats(patch){S.stats=Object.assign({},S.stats,patch);LS.set("za_stats",S.stats);renderStickers()}
+
+/* ---------- backends ---------- */
+function supaBackend(){
+  const sb=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey);
+  const COLS="id,title,text,cat,year,city,prompt,photo_url,author_id,author_name,created_at";
+  const norm=r=>({id:r.id,title:r.title,text:r.text,cat:r.cat,year:r.year,city:r.city,prompt:r.prompt,photo:r.photo_url,author:r.author_id,authorName:r.author_name,createdAt:Date.parse(r.created_at)});
+  return{
+    mode:"shared",
+    async load(){
+      const[m,r]=await Promise.all([
+        sb.from("memories").select(COLS).order("created_at",{ascending:false}).limit(1000),
+        sb.from("remembers").select("memory_id,device_id").limit(10000)]);
+      if(m.error)throw m.error;if(r.error)throw r.error;
+      return{mems:m.data.map(norm),rems:r.data.map(x=>({m:x.memory_id,u:x.device_id}))}
+    },
+    async add(row,blob){
+      let photo_url=null,photoFailed=false;
+      if(blob){
+        const path=new Date().toISOString().slice(0,7)+"/"+uid()+".jpg";
+        const up=await sb.storage.from("photos").upload(path,blob,{contentType:"image/jpeg",upsert:false});
+        if(up.error)photoFailed=true;else photo_url=sb.storage.from("photos").getPublicUrl(path).data.publicUrl;
+      }
+      const token=uid();
+      const{data,error}=await sb.from("memories").insert({title:row.title,text:row.text,cat:row.cat,year:row.year,city:row.city,prompt:row.prompt,
+        photo_url,author_id:DEV,author_name:row.authorName,delete_token:token}).select("id").single();
+      if(error)throw error;
+      const t=LS.get("za_tokens",{});t[data.id]=token;LS.set("za_tokens",t);
+      return{photoFailed}
+    },
+    canDelete(m){return !!LS.get("za_tokens",{})[m.id]},
+    async del(m){
+      const t=LS.get("za_tokens",{})[m.id];
+      const{data,error}=await sb.rpc("delete_memory",{p_id:m.id,p_token:t||""});
+      if(error)throw error;if(!data)throw{message:"not_allowed"};
+    },
+    async rem(mid,on){
+      if(on){const{error}=await sb.from("remembers").insert({memory_id:mid,device_id:DEV});if(error&&error.code!=="23505")throw error}
+      else{const{error}=await sb.from("remembers").delete().eq("memory_id",mid).eq("device_id",DEV);if(error)throw error}
+    },
+    subscribe(cb){
+      try{sb.channel("za-live").on("postgres_changes",{event:"*",schema:"public",table:"memories"},cb)
+        .on("postgres_changes",{event:"*",schema:"public",table:"remembers"},cb).subscribe()}catch(e){}
+      setInterval(()=>{if(!document.hidden)cb()},30000);
+      document.addEventListener("visibilitychange",()=>{if(!document.hidden)cb()});
+    }
+  }
+}
+function localBackend(){
+  const K="za_local_mems",R="za_local_rems";
+  return{
+    mode:"local",
+    async load(){return{mems:LS.get(K,[]),rems:LS.get(R,[])}},
+    async add(row,blob){
+      let photo=null,photoFailed=false;
+      if(blob){try{photo=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(blob)})}catch(e){photoFailed=true}}
+      const mems=LS.get(K,[]);
+      const item=Object.assign({},row,{id:uid(),photo,author:DEV,createdAt:Date.now()});
+      mems.unshift(item);
+      if(!LS.set(K,mems)){item.photo=null;photoFailed=!!blob;if(!LS.set(K,mems))throw{message:"quota"}}
+      return{photoFailed}
+    },
+    canDelete(m){return m.author===DEV},
+    async del(m){LS.set(K,LS.get(K,[]).filter(x=>x.id!==m.id));LS.set(R,LS.get(R,[]).filter(r=>r.m!==m.id))},
+    async rem(mid,on){let r=LS.get(R,[]).filter(x=>!(x.m===mid&&x.u===DEV));if(on)r.push({m:mid,u:DEV});LS.set(R,r)},
+    subscribe(cb){window.addEventListener("storage",cb)}
+  }
+}
+
+let refreshing=false,again=false,refreshT=null;
+function scheduleRefresh(){clearTimeout(refreshT);refreshT=setTimeout(refresh,250)}
+async function refresh(){
+  if(refreshing){again=true;return}
+  refreshing=true;
+  try{const d=await S.B.load();S.mems=d.mems;S.rems=d.rems;
+    if(!S.loaded){S.loaded=true;note(S.mode==="local"?"وضع تجريبي: الذكريات محفوظة في جهازك فقط. اربط الموقع بـ Supabase عشان تصير مشتركة بين الكل.":"")}
+    renderAll()}
+  catch(e){if(!S.loaded)note("تعذّر تحميل الذكريات. تأكد من الاتصال وحدّث الصفحة.")}
+  finally{refreshing=false;if(again){again=false;scheduleRefresh()}}
+}
+
+(function init(){
+  renderPrompt();renderFilters();renderQuiz();renderAll();
+  const hasSupa=CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase&&window.supabase.createClient;
+  try{S.B=hasSupa?supaBackend():localBackend()}catch(e){S.B=localBackend()}
+  S.mode=S.B.mode;
+  note("جاري ضبط الأريل… 📡");
+  if(S.B.mode==="local"&&CFG.supabaseUrl&&!window.supabase)note("ما قدرنا نحمّل مكتبة Supabase، الموقع شغال الحين في الوضع التجريبي.");
+  refresh();S.B.subscribe(scheduleRefresh);
+  $("fName").value=LS.get("za_name","");
+  if(isNight()&&!S.stats.night)saveStats({night:true});
+  if(window.SpeechRecognition||window.webkitSpeechRecognition)setupDictation();
+  $("photoLbl").classList.remove("hidden");
+})();
+
+function writeErr(e){
+  const m=(e&&(e.message||e.code))||"";
+  if(m==="quota")toast("ذاكرة الجهاز امتلأت، جرّب بدون صورة");
+  else if(m==="not_allowed")toast("ما تقدر تحذف هذي الذكرى");
+  else if(/fetch|network/i.test(m))toast("فيه مشكلة في الاتصال، جرّب مرة ثانية");
+  else toast("صار خطأ، جرّب مرة ثانية");
+}
+
+/* ---------- derived ---------- */
+function remMap(){const m={};for(const r of S.rems){if(r.m)m[r.m]=(m[r.m]||0)+1}return m}
+function myRem(mid){return S.rems.some(r=>r.m===mid&&r.u===DEV)}
+function myStats(){
+  const rm=remMap();const mine=S.mems.filter(m=>m.author===DEV);
+  let got=0,best=0;for(const m of mine){const c=rm[m.id]||0;got+=c;if(c>best)best=c}
+  return{mine:mine.length,photos:mine.filter(m=>m.photo).length,cats:new Set(mine.map(m=>m.cat)).size,old:mine.filter(m=>m.year&&m.year<1990).length,
+    gave:S.rems.filter(r=>r.u===DEV).length,got,bestOne:best,quiz:+(S.stats.quizBest||0),night:!!S.stats.night}
+}
+
+/* ---------- render ---------- */
+function renderAll(){renderCounters();renderFeed();renderTimeline();renderStickers()}
+function renderCounters(){
+  $("cMem").textContent=ar(S.mems.length);$("cRem").textContent=ar(S.rems.length);
+  const ppl=new Set([...S.mems.map(m=>m.author),...S.rems.map(r=>r.u)].filter(Boolean));$("cPpl").textContent=ar(ppl.size);
+}
+function renderPrompt(){$("promptQ").textContent=PROMPTS[S.promptI%PROMPTS.length]}
+function renderFilters(){
+  const dec=$("decFilters");dec.replaceChildren();
+  [["all","كل السنين"],["1980","الثمانينات"],["1990","التسعينات"],["2000","الألفينات"]].forEach(([k,n])=>{
+    dec.append(h("button",{class:"chip"+(S.fDec===k&&S.fYear==null?" on":""),onclick:()=>{S.fDec=k;S.fYear=null;renderFilters();renderFeed()}},n))});
+  if(S.fYear!=null)dec.prepend(h("button",{class:"chip x",onclick:()=>{S.fYear=null;renderFilters();renderFeed()}},(S.fYear==="none"?"بدون سنة":"سنة "+S.fYear)+" ✕"));
+  const cat=$("catFilters");cat.replaceChildren();
+  cat.append(h("button",{class:"chip"+(S.fCat==="all"?" on":""),onclick:()=>{S.fCat="all";renderFilters();renderFeed()}},"كل المواضيع"));
+  for(const k in CATS)cat.append(h("button",{class:"chip"+(S.fCat===k?" on":""),onclick:()=>{S.fCat=k;renderFilters();renderFeed()}},CATS[k].e+" "+CATS[k].n));
+}
+function filtered(rm){
+  let a=S.mems.slice();
+  if(S.fCat!=="all")a=a.filter(m=>m.cat===S.fCat);
+  if(S.fYear!=null)a=a.filter(m=>S.fYear==="none"?!m.year:m.year===S.fYear);
+  else if(S.fDec!=="all"){const d=+S.fDec;a=a.filter(m=>m.year>=d&&m.year<d+10)}
+  if(S.sort==="top")a.sort((x,y)=>(rm[y.id]||0)-(rm[x.id]||0)||(y.createdAt||0)-(x.createdAt||0));
+  return a
+}
+function renderFeed(){
+  const feed=$("feed");const rm=remMap();const list=filtered(rm);feed.replaceChildren();
+  $("feedCount").textContent=list.length?ar(list.length)+" ذكرى":"";
+  if(!list.length){
+    const any=S.mems.length>0;
+    feed.append(h("div",{class:"empty"},h("div",{class:"big"},any?"🔍":"📡"),
+      h("h3",{text:any?"ما فيه ذكريات بهالفلتر":(S.loaded?"الشاشة تنتظر أول ذكرى":"جاري ضبط الأريل…")}),
+      h("p",{text:any?"جرّب تصنيف أو سنة ثانية":"كن أول واحد يشارك! جاوب على سؤال (تذكر؟) فوق أو اضغط (أضف ذكرى)."})));
+    return
+  }
+  for(const m of list)feed.append(card(m,rm[m.id]||0));
+}
+function safePhoto(u){if(!u||typeof u!=="string")return null;if(/^https:\/\//.test(u)||/^data:image\//.test(u))return u;return null}
+function card(m,count){
+  const c=CATS[m.cat]||CATS.other;const own=m.author===DEV;const on=myRem(m.id);
+  const remBtn=h("button",{class:"rem"+(own?" own":on?" on":""),"aria-pressed":on?"true":"false",onclick:e=>{if(!own)toggleRem(m.id,e.currentTarget)}},
+    own?("👥 "+ar(count)+" يتذكرونها"):((on?"✓ أتذكرها":"📺 أتذكرها")+(count?" · "+ar(count):"")));
+  const del=S.B&&S.B.canDelete(m)?h("button",{class:"del"+(S.delArm===m.id?" sure":""),onclick:()=>delMem(m)},S.delArm===m.id?"متأكد؟ احذف":"حذف"):null;
+  const ph=safePhoto(m.photo);
+  return h("article",{class:"card"},
+    h("div",{class:"top"},h("span",{class:"tag"},c.e+" "+c.n),m.year?h("span",{class:"tag year"},String(m.year)):null,m.city?h("span",{class:"tag city"},"📍 "+m.city):null),
+    m.prompt?h("div",{class:"ans"},"جواب على: "+m.prompt):null,
+    m.title?h("h3",{text:m.title}):null,
+    h("p",{class:"txt",text:m.text||""}),
+    ph?h("img",{src:ph,alt:m.title||"صورة الذكرى",loading:"lazy"}):null,
+    h("div",{class:"foot"},h("div",{class:"who"},h("b",{text:nameOf(m)})," · "+ago(m.createdAt),del?" ":null,del),remBtn)
+  )
+}
+function renderTimeline(){
+  const box=$("timeline");box.replaceChildren();
+  const by={};let none=0;for(const m of S.mems){if(m.year)by[m.year]=(by[m.year]||0)+1;else none++}
+  const years=Object.keys(by).map(Number).sort((a,b)=>a-b);
+  if(!years.length&&!none){box.append(h("div",{class:"empty"},h("div",{class:"big"},"📅"),h("h3",{text:"الخط الزمني فاضي"}),h("p",{text:"حدد السنة لما تضيف ذكرى، وبتطلع هنا."})));return}
+  const max=Math.max(1,...Object.values(by),none);let lastDec=null;let tl=null;
+  for(const y of years){
+    const d=Math.floor(y/10)*10;
+    if(d!==lastDec){lastDec=d;box.append(h("div",{class:"dec"},d===1980?"الثمانينات":d===1990?"التسعينات":d===2000?"الألفينات":d===1970?"السبعينات":"عقد "+d));tl=h("div",{class:"tl"});box.append(tl)}
+    tl.append(yearRow(y,by[y],max));
+  }
+  if(none){box.append(h("div",{class:"dec"},"بدون سنة"));const t=h("div",{class:"tl"});t.append(yearRow("none",none,max));box.append(t)}
+}
+function yearRow(y,n,max){
+  return h("button",{class:"tly",onclick:()=>{S.fYear=y;S.fCat="all";renderFilters();switchTab("feed");renderFeed();window.scrollTo({top:document.getElementById("tab-feed").offsetTop-10,behavior:"smooth"})}},
+    h("span",{class:"y"},y==="none"?"؟":String(y)),h("span",{class:"bar"},h("i",{style:"width:"+Math.round(n/max*100)+"%"})),h("span",{class:"n"},ar(n)+" ذكرى"))
+}
+function renderStickers(){
+  const s=myStats();const grid=$("stickers");grid.replaceChildren();let n=0;const unlocked=[];
+  STICKERS.forEach((k,i)=>{const on=!!k.t(s);if(on){n++;unlocked.push(i)}
+    grid.append(h("div",{class:"stk "+(on?"on":"off")},h("div",{class:"e"},on?k.e:"❔"),h("b",{text:on?k.n:"جائزة مخفية"}),h("small",{text:k.d})))});
+  $("stkBar").style.width=Math.round(n/STICKERS.length*100)+"%";
+  $("stkCount").textContent="جمعت "+ar(n)+" من "+ar(STICKERS.length)+" جوائز"+(n===STICKERS.length?" — كمّلت المجموعة! 🎉":"");
+  if(S.loaded){
+    if(S.prevUnlocked){const fresh=unlocked.filter(i=>!S.prevUnlocked.includes(i));if(fresh.length){const k=STICKERS[fresh[0]];setTimeout(()=>toast("🎉 طلعت لك جائزة: "+k.e+" "+k.n),400)}}
+    S.prevUnlocked=unlocked;
+  }
+}
+
+/* ---------- actions ---------- */
+async function toggleRem(mid,btn){
+  const key="r"+mid;if(S.busy[key])return;S.busy[key]=1;
+  const has=myRem(mid);const before=S.rems.slice();
+  S.rems=has?S.rems.filter(r=>!(r.m===mid&&r.u===DEV)):S.rems.concat([{m:mid,u:DEV}]);
+  if(!has)popAt(btn);renderAll();
+  try{await S.B.rem(mid,!has)}catch(e){S.rems=before;renderAll();writeErr(e)}finally{delete S.busy[key]}
+}
+function popAt(btn){try{const r=btn.getBoundingClientRect();const p=h("span",{class:"pop",style:"left:"+(r.left+r.width/2-11)+"px;top:"+(r.top+window.scrollY-10)+"px;position:absolute"},"📺");document.body.append(p);setTimeout(()=>p.remove(),950)}catch(e){}}
+async function delMem(m){
+  if(S.delArm!==m.id){S.delArm=m.id;renderFeed();setTimeout(()=>{if(S.delArm===m.id){S.delArm=null;renderFeed()}},4000);return}
+  S.delArm=null;
+  try{await S.B.del(m);S.mems=S.mems.filter(x=>x.id!==m.id);renderAll();toast("انحذفت الذكرى")}catch(e){writeErr(e)}
+}
+
+/* ---------- tabs ---------- */
+function switchTab(t){
+  S.tab=t;["feed","time","quiz","stk"].forEach(k=>$("tab-"+k).classList.toggle("hidden",k!==t));
+  document.querySelectorAll("nav.bottom button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  $("fab").classList.toggle("hidden",t==="quiz");
+}
+document.querySelectorAll("nav.bottom button").forEach(b=>b.addEventListener("click",()=>{switchTab(b.dataset.tab);window.scrollTo({top:0,behavior:"smooth"})}));
+document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{S.sort=b.dataset.sort;document.querySelectorAll(".seg button").forEach(x=>x.classList.toggle("on",x===b));renderFeed()}));
+$("promptNext").addEventListener("click",()=>{S.promptI=(S.promptI+1)%PROMPTS.length;renderPrompt()});
+$("promptAns").addEventListener("click",()=>openComposer(PROMPTS[S.promptI%PROMPTS.length]));
+$("fab").addEventListener("click",()=>openComposer(null));
+
+/* ---------- composer ---------- */
+(function buildComposer(){
+  const sel=$("fYear");sel.append(h("option",{value:""},"مو متأكد"));
+  for(let y=2010;y>=1975;y--)sel.append(h("option",{value:String(y)},String(y)));
+  renderCatPicker();
+})();
+function renderCatPicker(){const box=$("fCats");box.replaceChildren();for(const k in CATS)box.append(h("button",{type:"button",class:"chip"+(S.cat===k?" on":""),onclick:()=>{S.cat=k;renderCatPicker()}},CATS[k].e+" "+CATS[k].n))}
+function openComposer(prompt){
+  S.answering=prompt;const ab=$("ansBox");ab.textContent=prompt?"تجاوب على: "+prompt:"";ab.classList.toggle("show",!!prompt);
+  $("composer").classList.add("show");document.body.style.overflow="hidden";
+  setTimeout(()=>{try{$("fText").focus()}catch(e){}},150);
+}
+function closeComposer(){$("composer").classList.remove("show");document.body.style.overflow="";stopDictation()}
+function resetComposer(){$("fText").value="";$("fTitle").value="";$("fYear").value="";$("fCity").value="";S.cat="other";renderCatPicker();clearPhoto();$("partial").textContent="";S.answering=null}
+$("cmpClose").addEventListener("click",closeComposer);
+$("composer").addEventListener("click",e=>{if(e.target.id==="composer")closeComposer()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("composer").classList.contains("show"))closeComposer()});
+$("fPhoto").addEventListener("change",e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  if(!/^image\//.test(f.type)){toast("اختر صورة فقط");return}
+  S.file=f;$("photoImg").src=URL.createObjectURL(f);$("photoPrev").classList.add("show");
+});
+$("photoRm").addEventListener("click",clearPhoto);
+function clearPhoto(){S.file=null;$("fPhoto").value="";$("photoPrev").classList.remove("show");$("photoImg").removeAttribute("src")}
+function compress(file,M,q){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);
+  img.onload=()=>{let w=img.naturalWidth,ht=img.naturalHeight;const k=Math.min(1,M/Math.max(w,ht));w=Math.round(w*k);ht=Math.round(ht*k);
+    const c=document.createElement("canvas");c.width=w;c.height=ht;c.getContext("2d").drawImage(img,0,0,w,ht);URL.revokeObjectURL(url);
+    c.toBlob(b=>b?res(b):rej(new Error("blob")),"image/jpeg",q)};
+  img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("img"))};img.src=url})}
+
+$("submitBtn").addEventListener("click",async()=>{
+  const text=$("fText").value.trim();const name=$("fName").value.trim();
+  if(text.length<5){toast("اكتب سالفتك أول ✍️");$("fText").focus();return}
+  if(!name){toast("اكتب اسمك أو لقبك 🙂");$("fName").focus();return}
+  LS.set("za_name",name);
+  const btn=$("submitBtn");btn.disabled=true;btn.textContent="جاري البث… 📡";
+  try{
+    stopDictation();
+    let blob=null;
+    if(S.file){try{blob=S.mode==="local"?await compress(S.file,900,.75):await compress(S.file,1400,.84)}catch(e){toast("ما قدرنا نقرأ الصورة")}}
+    const y=parseInt($("fYear").value,10);
+    const r=await S.B.add({title:$("fTitle").value.trim().slice(0,70),text:text.slice(0,3000),cat:S.cat in CATS?S.cat:"other",
+      year:isFinite(y)?y:null,city:$("fCity").value.trim().slice(0,30),prompt:S.answering||null,authorName:name.slice(0,30)},blob);
+    closeComposer();resetComposer();
+    toast(r&&r.photoFailed?"انبثّت ذكراك، بس الصورة ما ارتفعت":"انبثّت ذكراك 🎉");
+    if(S.tab!=="feed")switchTab("feed");
+    await refresh();
+  }catch(e){writeErr(e)}
+  finally{btn.disabled=false;btn.textContent="انشر الذكرى 📡"}
+});
+
+/* dictation (Web Speech API) */
+let REC=null;
+function stopDictation(){try{if(REC&&S.listening)REC.stop()}catch(e){}}
+function setupDictation(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const btn=$("micBtn");btn.classList.remove("hidden");
+  const setL=on=>{S.listening=on;btn.classList.toggle("rec",on);btn.textContent=on?"⏹️ وقّف التسجيل":"🎙️ سجّل بصوتك";if(!on)$("partial").textContent=""};
+  btn.addEventListener("click",()=>{
+    if(S.listening){stopDictation();return}
+    try{
+      REC=new SR();REC.lang="ar-SA";REC.continuous=true;REC.interimResults=true;
+      REC.onstart=()=>setL(true);REC.onend=()=>setL(false);
+      REC.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){btn.classList.add("hidden");toast("المايك مقفل، تقدر تكتب بدل التسجيل ✍️")}else if(e.error!=="no-speech"&&e.error!=="aborted")toast("ما اشتغل التسجيل، جرّب مرة ثانية")};
+      REC.onresult=e=>{let interim="";for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];
+        if(r.isFinal){const ta=$("fText");ta.value=(ta.value&&!/\s$/.test(ta.value)?ta.value+" ":ta.value)+r[0].transcript.trim()+" "}else interim+=r[0].transcript}
+        $("partial").textContent=interim?"… "+interim:""};
+      REC.start();
+    }catch(e){toast("التسجيل الصوتي غير متاح في هالمتصفح")}
+  });
+}
+
+/* ---------- quiz ---------- */
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function newQuiz(){S.q={order:shuffle(QUIZ.map((_,i)=>i)),i:0,score:0,picked:null,opts:null}}
+function renderQuiz(){
+  if(!S.q)newQuiz();const q=S.q;const box=$("quiz");box.replaceChildren();
+  if(q.i>=q.order.length){
+    const best=Math.max(q.score,+(S.stats.quizBest||0));
+    const msg=q.score===QUIZ.length?"أسطورة التلفزيون! 📺":q.score>=7?"واضح إنك عشت الزمن الجميل 👌":q.score>=4?"مو بطال، بس فيه برامج فاتتك 😄":"شكلك كنت تلعب كورة وقت البرامج ⚽";
+    box.append(h("div",{class:"qend"},h("div",{class:"sc"},ar(q.score)+"/"+ar(QUIZ.length)),h("p",{text:msg}),h("p",{style:"color:#9fc4b9;font-size:14px"},"أفضل نتيجة لك: "+ar(best)),
+      h("button",{class:"btn pri",onclick:()=>{newQuiz();renderQuiz()}},"العب مرة ثانية ↻")));
+    return
+  }
+  const item=QUIZ[q.order[q.i]];if(!q.opts)q.opts=shuffle(item.o);
+  box.append(h("div",{class:"meta"},h("span",null,"سؤال "+ar(q.i+1)+" من "+ar(q.order.length)),h("span",null,"النتيجة: "+ar(q.score))),
+    h("div",{class:"qq",text:item.q}));
+  const opts=h("div",{class:"opts"});
+  q.opts.forEach(o=>{
+    let cls="opt";if(q.picked){if(o===item.a)cls+=" ok";else if(o===q.picked)cls+=" bad"}
+    opts.append(h("button",{class:cls,disabled:q.picked?true:null,onclick:()=>pick(o)},o))});
+  box.append(opts);
+  box.append(h("div",{class:"fb"},q.picked?(q.picked===item.a?"صح عليك! 🎉":"لا، الجواب: "+item.a):""));
+  if(q.picked)box.append(h("button",{class:"btn pri",onclick:nextQ},q.i+1<q.order.length?"التالي ←":"شوف نتيجتك"));
+}
+function pick(o){const q=S.q;if(q.picked)return;q.picked=o;if(o===QUIZ[q.order[q.i]].a)q.score++;renderQuiz()}
+function nextQ(){const q=S.q;q.i++;q.picked=null;q.opts=null;
+  if(q.i>=q.order.length&&q.score>(+(S.stats.quizBest||0)))saveStats({quizBest:q.score});
+  renderQuiz()}
+
+/* ---------- sign-off ---------- */
+function isNight(){const hr=new Date().getHours();return hr>=0&&hr<5}
+let actx=null,osc=null;
+function stopTone(){try{if(osc){osc.stop();osc.disconnect()}}catch(e){}osc=null;$("soTone").textContent="🔊 صوت الإرسال"}
+function showSignoff(){const d=new Date();$("soClock").textContent=d.toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"});$("signoff").classList.add("show")}
+$("offBtn").addEventListener("click",showSignoff);
+$("soStay").addEventListener("click",()=>{stopTone();$("signoff").classList.remove("show")});
+$("soTone").addEventListener("click",()=>{
+  if(osc){stopTone();return}
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume();
+    const g=actx.createGain();g.gain.value=.06;osc=actx.createOscillator();osc.type="sine";osc.frequency.value=1000;osc.connect(g).connect(actx.destination);osc.start();
+    $("soTone").textContent="🔇 أوقف الصوت"}catch(e){toast("الصوت غير متاح")}
+});
+(function(){if(isNight()){let seen=false;try{seen=sessionStorage.getItem("signoffSeen")==="1";sessionStorage.setItem("signoffSeen","1")}catch(e){}if(!seen)showSignoff()}})();
+
+</script>
+</body>
+</html>
