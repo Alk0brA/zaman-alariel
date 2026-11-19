@@ -1,0 +1,16 @@
+{
+  "name": "zaman-alariel",
+  "version": "1.0.0",
+  "description": "زمن الأريل — منصة ذكريات جيل الثمانينات والتسعينات",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}

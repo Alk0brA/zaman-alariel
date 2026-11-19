@@ -467,6 +467,32 @@ function localBackend(){
   }
 }
 
+function apiBackend(){
+  const base=CFG.api.replace(/\/$/,"");
+  const j=async(p,opt)=>{const r=await fetch(base+p,opt);let b=null;try{b=await r.json()}catch(e){}if(!r.ok){throw{message:(b&&b.error)||("http_"+r.status)}}return b};
+  const post=(p,body)=>j(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const toData=blob=>new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(blob)});
+  let lastV=null;
+  return{
+    mode:"shared",
+    async load(){const d=await j("/state");lastV=d.v;return{mems:d.mems,rems:d.rems}},
+    async add(row,blob){
+      let photo=null;if(blob){try{photo=await toData(blob)}catch(e){}}
+      const d=await post("/memories",Object.assign({},row,{author:DEV,photo}));
+      const t=LS.get("za_tokens",{});t[d.id]=d.token;LS.set("za_tokens",t);
+      return{photoFailed:!!blob&&(!photo||d.photoFailed)}
+    },
+    canDelete(m){return !!LS.get("za_tokens",{})[m.id]},
+    async del(m){await post("/memories/"+m.id+"/delete",{token:LS.get("za_tokens",{})[m.id]||""})},
+    async rem(mid,on){await post("/remember",{memory:mid,device:DEV,on:!!on})},
+    subscribe(cb){
+      const tick=async()=>{if(document.hidden)return;try{const d=await j("/v");if(lastV!==null&&d.v!==lastV)cb()}catch(e){}};
+      setInterval(tick,4000);
+      document.addEventListener("visibilitychange",()=>{if(!document.hidden)cb()});
+    }
+  }
+}
+
 let refreshing=false,again=false,refreshT=null;
 function scheduleRefresh(){clearTimeout(refreshT);refreshT=setTimeout(refresh,250)}
 async function refresh(){
@@ -482,7 +508,7 @@ async function refresh(){
 (function init(){
   renderPrompt();renderFilters();renderQuiz();renderAll();
   const hasSupa=CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase&&window.supabase.createClient;
-  try{S.B=hasSupa?supaBackend():localBackend()}catch(e){S.B=localBackend()}
+  try{S.B=CFG.api?apiBackend():hasSupa?supaBackend():localBackend()}catch(e){S.B=localBackend()}
   S.mode=S.B.mode;
   note("جاري ضبط الأريل… 📡");
   if(S.B.mode==="local"&&CFG.supabaseUrl&&!window.supabase)note("ما قدرنا نحمّل مكتبة Supabase، الموقع شغال الحين في الوضع التجريبي.");
@@ -497,6 +523,8 @@ function writeErr(e){
   const m=(e&&(e.message||e.code))||"";
   if(m==="quota")toast("ذاكرة الجهاز امتلأت، جرّب بدون صورة");
   else if(m==="not_allowed")toast("ما تقدر تحذف هذي الذكرى");
+  else if(m==="rate_limited")toast("شوي شوي 😅 جرّب بعد دقيقة");
+  else if(m==="too_large")toast("الصورة كبيرة، جرّب صورة ثانية");
   else if(/fetch|network/i.test(m))toast("فيه مشكلة في الاتصال، جرّب مرة ثانية");
   else toast("صار خطأ، جرّب مرة ثانية");
 }
@@ -547,7 +575,7 @@ function renderFeed(){
   }
   for(const m of list)feed.append(card(m,rm[m.id]||0));
 }
-function safePhoto(u){if(!u||typeof u!=="string")return null;if(/^https:\/\//.test(u)||/^data:image\//.test(u))return u;return null}
+function safePhoto(u){if(!u||typeof u!=="string")return null;if(/^https:\/\//.test(u)||/^data:image\//.test(u)||/^\/api\/photo\/[0-9a-f-]{36}$/i.test(u))return u;return null}
 function card(m,count){
   const c=CATS[m.cat]||CATS.other;const own=m.author===DEV;const on=myRem(m.id);
   const remBtn=h("button",{class:"rem"+(own?" own":on?" on":""),"aria-pressed":on?"true":"false",onclick:e=>{if(!own)toggleRem(m.id,e.currentTarget)}},
@@ -658,7 +686,7 @@ $("submitBtn").addEventListener("click",async()=>{
   try{
     stopDictation();
     let blob=null;
-    if(S.file){try{blob=S.mode==="local"?await compress(S.file,900,.75):await compress(S.file,1400,.84)}catch(e){toast("ما قدرنا نقرأ الصورة")}}
+    if(S.file){try{blob=S.mode==="local"?await compress(S.file,900,.75):await compress(S.file,1280,.8)}catch(e){toast("ما قدرنا نقرأ الصورة")}}
     const y=parseInt($("fYear").value,10);
     const r=await S.B.add({title:$("fTitle").value.trim().slice(0,70),text:text.slice(0,3000),cat:S.cat in CATS?S.cat:"other",
       year:isFinite(y)?y:null,city:$("fCity").value.trim().slice(0,30),prompt:S.answering||null,authorName:name.slice(0,30)},blob);
