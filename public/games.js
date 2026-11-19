@@ -883,7 +883,7 @@ const ZAGames = (() => {
      ===================================================== */
   const PONG_TH = [{ n: "الملعب الكلاسيكي", bg: "#000", fg: "#fff" }, { n: "ملعب العشب", bg: "#1e6b34", fg: "#f0fff0" }, { n: "ملعب الجليد", bg: "#0d3b66", fg: "#d6f0ff" }, { n: "الملعب الترابي", bg: "#7a3416", fg: "#ffe7d1", wall: true }];
   const pong = {
-    id: "pong", console: "atari", name: "تنس الطاولة", emoji: "🏓", color: "#34495e", pad: "dpad-a",
+    id: "pong", console: "atari", name: "تنس الطاولة", emoji: "🏓", color: "#34495e", pad: "dpad",
     desc: "أول لعبة فيديو دخلت البيوت! أنت المضرب اليمين. أول واحد يجيب ٥ نقاط يفوز بالمرحلة. كل مرحلة الخصم أذكى والكرة أسرع، وفي ملعب التراب فيه حاجز متحرك بالنص.",
     controls: "▲ ▼ لتحريك المضرب — أو اسحب بإصبعك على الشاشة",
     init() { this.level = 1; this.score = 0; this.newLevel(); },
@@ -1299,7 +1299,7 @@ const ZAGames = (() => {
      ===================================================== */
   const DATES_TH = [{ n: "مزرعة الصباح", sky: "#7fc8f8", ground: "#c9a24a" }, { n: "عصرية النخل", sky: "#f4a261", ground: "#b5793a" }, { n: "ليلة الصرام", sky: "#1b2a4a", ground: "#5a4320", night: true }];
   const dates = {
-    id: "dates", console: "atari", name: "مطر التمر", emoji: "🌴", color: "#a0522d", pad: "lr-a",
+    id: "dates", console: "atari", name: "مطر التمر", emoji: "🌴", color: "#a0522d", pad: "lr",
     desc: "قرد شقي فوق النخل يرمي تمر! التقطه بالسلال قبل لا يطيح بالأرض، وكل تمرة تطيح تخسّرك سلة. من الموجة الثانية يرمي حجارة لا تلتقطها! والتمرة الذهبية بعشر أضعاف.",
     controls: "◀ ▶ أو اسحب بإصبعك لتحريك السلال",
     init() { this.wave = 1; this.score = 0; this.baskets = 3; this.x = 110; this.items = []; this.mx = 128; this.mdir = 1; this.newWave(); },
@@ -1608,6 +1608,10 @@ const ZAGames = (() => {
     brick: () => tune([880, 660, 880, 660, 1320], "square", 0.07)
   };
 
+  /* ---------- وظيفة زر A في كل لعبة ---------- */
+  const A_LABEL = { hara: "قفز", hunt: "رمي", tower: "قفز", bomber: "قنبلة", runner: "قفز", racer: "نيترو", falcon: "قنبلة", bricks: "إطلاق", invaders: "رمي", rocks: "رمي", shield: "إطلاق", blocks: "إسقاط", tank: "رمي", brickrace: "تسريع" };
+  const DIAG = { falcon: 1, rocks: 1, shield: 1, hunt: 1 };
+
   /* ---------- المحرك ---------- */
   function build() {
     if (ov) return;
@@ -1615,21 +1619,44 @@ const ZAGames = (() => {
     ov.innerHTML = '<div class="gbox"><div class="gtop"><button class="gx" id="gClose" aria-label="إغلاق">✕</button><b id="gTitle"></b><button class="gx" id="gMute" aria-label="الصوت"></button></div>' +
       '<div class="ghud" id="gHud"></div>' +
       '<div class="gscreenwrap"><canvas id="gCanvas" width="256" height="240"></canvas><div class="gscreen" id="gScreen"></div></div>' +
-      '<div class="pad" id="gPad"><div class="dpad"><button data-k="up" class="up" aria-label="أعلى">▲</button><button data-k="left" class="lf" aria-label="يسار">◀</button><button data-k="right" class="rt" aria-label="يمين">▶</button><button data-k="down" class="dn" aria-label="أسفل">▼</button><i class="hub"></i></div>' +
-      '<div class="padmid"><span id="gPadName"></span><small id="gPadSub"></small></div><div class="abtn"><button data-k="a" class="ba" aria-label="زر A">A</button><button data-k="a" class="bb" aria-hidden="true" tabindex="-1">B</button><button data-k="a" class="bc" aria-hidden="true" tabindex="-1">C</button></div></div></div>';
+      '<div class="pad" id="gPad"><div class="dpad" id="gDpad" role="group" aria-label="أزرار الاتجاهات"><span data-d="up" class="up">▲</span><span data-d="left" class="lf">◀</span><span data-d="right" class="rt">▶</span><span data-d="down" class="dn">▼</span><i class="hub"></i></div>' +
+      '<div class="padmid"><span id="gPadName"></span><small id="gPadSub"></small></div><div class="abtn"><button data-k="a" class="ba" aria-label="زر الحركة"><b>A</b><small id="gALabel"></small></button></div></div></div>';
     document.body.appendChild(ov);
     canvas = ov.querySelector("#gCanvas"); g = canvas.getContext("2d"); g.imageSmoothingEnabled = false;
     screenEl = ov.querySelector("#gScreen"); hudEl = ov.querySelector("#gHud"); titleEl = ov.querySelector("#gTitle"); padEl = ov.querySelector("#gPad");
     ov.querySelector("#gClose").addEventListener("click", close);
     const mb = ov.querySelector("#gMute"); const setM = () => mb.textContent = muted ? "🔇" : "🔊"; setM();
     mb.addEventListener("click", () => { muted = !muted; try { localStorage.setItem("za_mute", muted ? "1" : "0"); } catch (e) {} setM(); });
-    padEl.querySelectorAll("button[data-k]").forEach(b => {
-      const k = b.dataset.k;
-      const down = e => { e.preventDefault(); if (!keys[k]) just.add(k); keys[k] = true; b.classList.add("on"); if (k === "a") onAction(); };
-      const up = e => { e.preventDefault(); keys[k] = false; b.classList.remove("on"); };
-      b.addEventListener("pointerdown", down); b.addEventListener("pointerup", up); b.addEventListener("pointerleave", up); b.addEventListener("pointercancel", up);
-      b.addEventListener("contextmenu", e => e.preventDefault());
-    });
+    const buzz = ms => { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} };
+    /* زر الحركة A — منطقة لمس أكبر من شكله */
+    const ab = padEl.querySelector(".abtn"), aBtn = ab.querySelector(".ba"), aIds = new Set();
+    const aSet = on => { if (on && !keys.a) { just.add("a"); buzz(12); onAction(); } keys.a = on; aBtn.classList.toggle("on", on); };
+    ab.addEventListener("pointerdown", e => { e.preventDefault(); aIds.add(e.pointerId); try { ab.setPointerCapture(e.pointerId); } catch (x) {} aSet(true); });
+    const aUp = e => { aIds.delete(e.pointerId); if (!aIds.size) aSet(false); };
+    ab.addEventListener("pointerup", aUp); ab.addEventListener("pointercancel", aUp); ab.addEventListener("lostpointercapture", aUp);
+    /* لوحة الاتجاهات: لمسة وحدة وتسحب إصبعك بين الاتجاهات بدون ما ترفعه */
+    const dp = padEl.querySelector(".dpad"), dIds = new Map(), arrows = {};
+    dp.querySelectorAll("[data-d]").forEach(x => arrows[x.dataset.d] = x);
+    const dirsAt = e => {
+      const r = dp.getBoundingClientRect(), x = e.clientX - (r.left + r.width / 2), y = e.clientY - (r.top + r.height / 2);
+      const kind = padEl.dataset.kind;
+      if (kind === "lr-a" || kind === "lr") return Math.abs(x) < r.width * 0.06 ? [] : [x < 0 ? "left" : "right"];
+      if (Math.hypot(x, y) < Math.min(r.width, r.height) * 0.13) return [];
+      const a = Math.atan2(y, x) * 180 / Math.PI;
+      if (cur && cur.diag) { const o = []; if (a > -67.5 && a < 67.5) o.push("right"); if (a > 112.5 || a < -112.5) o.push("left"); if (a > 22.5 && a < 157.5) o.push("down"); if (a < -22.5 && a > -157.5) o.push("up"); return o; }
+      return [a >= -45 && a < 45 ? "right" : a >= 45 && a < 135 ? "down" : a >= -135 && a < -45 ? "up" : "left"];
+    };
+    const applyD = () => {
+      const on = new Set(); for (const v of dIds.values()) v.forEach(k => on.add(k));
+      for (const k of ["up", "down", "left", "right"]) { const now = on.has(k); if (now && !keys[k]) { just.add(k); buzz(8); } keys[k] = now; if (arrows[k]) arrows[k].classList.toggle("on", now); }
+      dp.classList.toggle("act", on.size > 0);
+    };
+    dp.addEventListener("pointerdown", e => { e.preventDefault(); try { dp.setPointerCapture(e.pointerId); } catch (x) {} dIds.set(e.pointerId, dirsAt(e)); applyD(); });
+    dp.addEventListener("pointermove", e => { if (!dIds.has(e.pointerId)) return; const d = dirsAt(e), old = dIds.get(e.pointerId); if (d.join() !== old.join()) { dIds.set(e.pointerId, d); applyD(); } });
+    const dUp = e => { if (dIds.delete(e.pointerId)) applyD(); };
+    dp.addEventListener("pointerup", dUp); dp.addEventListener("pointercancel", dUp); dp.addEventListener("lostpointercapture", dUp);
+    padEl.addEventListener("contextmenu", e => e.preventDefault());
+    S_resetPad = () => { dIds.clear(); aIds.clear(); applyD(); aBtn.classList.remove("on"); };
     const pos = e => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
     let pdown = false;
     canvas.addEventListener("pointerdown", e => { e.preventDefault(); if (state === "boot") { showTitle(); return; } pdown = true; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} if (state === "play" && cur.tap) cur.tap(...pos(e)); });
@@ -1648,7 +1675,8 @@ const ZAGames = (() => {
     document.addEventListener("visibilitychange", () => { if (document.hidden && state === "play") { state = "paused"; showPaused(); } });
   }
   function onAction() { if (state === "boot") showTitle(); else if (state === "title" || state === "over") startPlay(); }
-  function clearKeys() { for (const k in keys) keys[k] = false; just.clear(); }
+  let S_resetPad = null;
+  function clearKeys() { for (const k in keys) keys[k] = false; just.clear(); if (S_resetPad) S_resetPad(); }
   function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 
   async function board(id) {
@@ -1707,9 +1735,10 @@ const ZAGames = (() => {
   }
   function open(id) {
     build();
-    cur = LIST.find(x => x.id === id); if (!cur) return;
+    cur = LIST.find(x => x.id === id); if (!cur) return; cur.diag = !!DIAG[cur.id];
     const c = CONSOLES[cur.console];
     titleEl.textContent = cur.emoji + " " + cur.name; padEl.dataset.kind = cur.pad; ov.dataset.console = cur.console;
+    ov.querySelector("#gALabel").textContent = A_LABEL[cur.id] || "";
     ov.querySelector("#gPadName").textContent = c.name; ov.querySelector("#gPadSub").textContent = c.sub;
     ov.classList.add("show"); document.body.style.overflow = "hidden";
     screenEl.classList.remove("show"); screenEl.replaceChildren(); hudEl.textContent = "";

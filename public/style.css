@@ -444,3 +444,83 @@ nav.bottom button{font-size:11.5px}
 .lvup .ic{font-size:60px;line-height:1.1}
 .lvup h2{font-family:Lalezar;font-weight:400;font-size:30px;margin:6px 0 0;color:#f2c230}
 .lvup p{margin:4px 0 14px;color:#f0e2cc}
+
+/* ===== v6: controller UX ===== */
+.gov{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.gov .gbox{height:100vh;height:100dvh;padding:8px 12px calc(10px + env(safe-area-inset-bottom));max-width:520px}
+.gov .gtop b{font-size:20px}
+.gov .ghud{margin:2px 0 6px;font-size:14px}
+.gov .gscreenwrap{width:min(100%,calc((100dvh - 330px) * 1.0667));align-self:center;flex:none}
+.gov .pad{flex:1;min-height:210px;margin-top:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;touch-action:none;direction:ltr}
+.gov .padmid{flex:1;min-width:0;pointer-events:none}
+/* D-pad */
+.gov .dpad{position:relative;width:min(46vw,210px);height:auto;aspect-ratio:1/1;flex:none;touch-action:none;border-radius:50%;box-shadow:none;background:transparent}
+.gov .dpad::after{display:none!important}
+.gov .dpad>span{position:absolute;width:35%;height:35%;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,5vw,24px);color:#aaa;background:linear-gradient(#3b3b3b,#1d1d1d);box-shadow:0 5px 0 #0b0b0b,inset 0 1px 0 rgba(255,255,255,.14);transition:transform .05s,box-shadow .05s,color .05s;pointer-events:none}
+.gov .dpad .up{left:32.5%;top:0;border-radius:14px 14px 4px 4px}
+.gov .dpad .dn{left:32.5%;bottom:0;border-radius:4px 4px 14px 14px}
+.gov .dpad .lf{top:32.5%;left:0;border-radius:14px 4px 4px 14px}
+.gov .dpad .rt{top:32.5%;right:0;border-radius:4px 14px 14px 4px}
+.gov .dpad .hub{display:block!important;position:absolute;left:32.5%;top:32.5%;width:35%;height:35%;background:radial-gradient(circle,#2b2b2b 30%,#1d1d1d 70%);border-radius:4px;pointer-events:none;box-shadow:none}
+.gov .dpad>span.on{transform:translateY(4px) scale(.95);box-shadow:0 1px 0 #0b0b0b;color:#fff;background:linear-gradient(#555,#2b2b2b)}
+.gov .pad[data-kind="dpad"]{justify-content:center;gap:18px}
+.gov .pad[data-kind="dpad"] .dpad{width:min(64vw,250px)}
+.gov .pad[data-kind="dpad"] .padmid,.gov .pad[data-kind="lr"] .padmid{flex:none;width:auto}
+/* left/right only */
+.gov .pad[data-kind^="lr"] .dpad{width:min(56vw,270px);aspect-ratio:auto;height:min(28vw,118px);border-radius:22px}
+.gov .pad[data-kind^="lr"] .dpad .up,.gov .pad[data-kind^="lr"] .dpad .dn,.gov .pad[data-kind^="lr"] .dpad .hub{display:none!important}
+.gov .pad[data-kind^="lr"] .dpad .lf,.gov .pad[data-kind^="lr"] .dpad .rt{top:0;width:48%;height:100%;border-radius:20px;font-size:clamp(24px,8vw,38px)}
+.gov .pad[data-kind^="lr"] .dpad .lf{left:0}.gov .pad[data-kind^="lr"] .dpad .rt{right:0;left:auto}
+.gov .pad[data-kind="lr"]{justify-content:center}
+.gov .pad[data-kind="lr"] .dpad{width:min(86vw,360px)}
+/* A button */
+.gov .pad .abtn{flex:none;width:min(31vw,132px);height:min(31vw,132px);display:flex;align-items:center;justify-content:center;touch-action:none;transform:none;gap:0}
+.gov[data-console] .abtn .ba{width:86%;height:86%;border-radius:50%;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;background:radial-gradient(circle at 35% 30%,#ff6157,#c62a20 58%,#7e150f);color:#fff;box-shadow:0 7px 0 #5a0d09,0 12px 20px rgba(0,0,0,.35);transition:transform .05s,box-shadow .05s;pointer-events:none;font-size:inherit}
+.gov[data-console] .abtn .ba b{font-size:clamp(24px,7.5vw,34px);line-height:1;font-family:Tajawal,sans-serif}
+.gov[data-console] .abtn .ba small{font-size:clamp(11.5px,3.5vw,14.5px);font-weight:800;opacity:.95;display:block}
+.gov[data-console] .abtn .ba.on{transform:translateY(6px) scale(.95);box-shadow:0 1px 0 #5a0d09,0 4px 10px rgba(0,0,0,.3)}
+.gov .pad[data-kind="dpad"] .abtn,.gov .pad[data-kind="lr"] .abtn{display:none}
+/* console skins for the new controls */
+.gov[data-console=atari] .dpad{background:radial-gradient(circle,#202020 60%,#111 61%)!important;box-shadow:0 6px 0 #000,inset 0 0 0 5px #2a2a2a!important}
+.gov[data-console=atari] .dpad>span{background:transparent;box-shadow:none;color:#777}
+.gov[data-console=atari] .dpad>span.on{color:#ffcf6b;background:rgba(255,255,255,.06)}
+.gov[data-console=atari] .dpad .hub{left:30%;top:30%;width:40%;height:40%;border-radius:50%;background:radial-gradient(circle at 35% 35%,#666,#111);box-shadow:0 0 0 6px #262626}
+.gov[data-console=atari] .pad[data-kind^="lr"] .dpad{background:#151515!important;border-radius:22px}
+.gov[data-console=sega] .pad .abtn{transform:none}
+.gov[data-console=sega] .abtn .ba{background:radial-gradient(circle at 35% 30%,#5fa8ff,#1b4fa0 60%,#0d2a5a);box-shadow:0 7px 0 #06183a,0 12px 20px rgba(0,0,0,.4)}
+.gov[data-console=sega] .abtn .ba.on{box-shadow:0 1px 0 #06183a}
+.gov[data-console=brick] .dpad>span{border-radius:50%!important;width:34%;height:34%;background:radial-gradient(circle at 35% 30%,#4a5357,#22292b);box-shadow:0 5px 0 #111}
+.gov[data-console=brick] .dpad .hub{display:none!important}
+.gov[data-console=brick] .pad[data-kind^="lr"] .dpad>span{border-radius:22px!important;width:48%;height:100%}
+.gov[data-console=brick] .abtn .ba{background:radial-gradient(circle at 35% 30%,#4a5357,#22292b);box-shadow:0 7px 0 #111}
+.gov[data-console=brick] .abtn .ba.on{box-shadow:0 1px 0 #111}
+/* short screens */
+@media (max-height:700px) and (orientation:portrait){
+  .gov .gscreenwrap{width:min(100%,calc((100dvh - 290px) * 1.0667))}
+  .gov .pad{min-height:180px;padding:10px 12px}
+  .gov .padmid small{display:none}
+}
+/* landscape: screen in the middle, controls on both sides */
+@media (orientation:landscape) and (max-height:560px){
+  .gov .gbox{max-width:none;display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:auto auto 1fr;column-gap:14px;padding:6px 14px calc(6px + env(safe-area-inset-bottom))}
+  .gov .gtop{grid-column:1/-1}
+  .gov .ghud{grid-column:1/-1;margin:0 0 4px}
+  .gov .gscreenwrap{grid-column:2;grid-row:3;width:auto;height:calc(100dvh - 82px);aspect-ratio:256/240;align-self:start}
+  .gov .pad{display:contents}
+  .gov .padmid{display:none}
+  .gov .dpad{grid-column:1;grid-row:3;align-self:center;justify-self:center;width:min(30vw,calc(100dvh - 110px),220px)!important}
+  .gov .pad[data-kind^="lr"] .dpad{height:min(28vh,120px);width:min(30vw,240px)!important}
+  .gov .pad .abtn{grid-column:3;grid-row:3;align-self:center;justify-self:center;width:min(22vw,140px);height:min(22vw,140px)}
+  .gov .pad[data-kind="dpad"] .abtn,.gov .pad[data-kind="lr"] .abtn{display:none}
+}
+/* v6 fixes */
+.gov .pad[data-kind^="lr"] .padmid{display:none}
+.gov .pad[data-kind="lr"] .dpad{width:min(92%,380px)}
+@media (max-width:440px){ .gov .pad[data-kind="dpad-a"] .padmid{display:none} .gov .pad[data-kind="dpad-a"]{justify-content:space-between} }
+@media (orientation:landscape) and (max-height:560px){
+  .gov .gbox{direction:ltr}
+  .gov .gtop,.gov .ghud{direction:rtl}
+}
+.gov[data-console=atari] .pad[data-kind^="lr"] .dpad{background:transparent!important;box-shadow:none!important}
+.gov[data-console=atari] .pad[data-kind^="lr"] .dpad>span{background:linear-gradient(#3b3b3b,#1d1d1d);box-shadow:0 5px 0 #0b0b0b,inset 0 1px 0 rgba(255,255,255,.14);color:#bbb}
+.gov[data-console=atari] .pad[data-kind^="lr"] .dpad>span.on{background:linear-gradient(#555,#2b2b2b);box-shadow:0 1px 0 #0b0b0b;color:#ffcf6b}

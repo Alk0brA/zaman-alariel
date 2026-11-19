@@ -4,7 +4,7 @@
      ===================================================== */
   const DATES_TH = [{ n: "مزرعة الصباح", sky: "#7fc8f8", ground: "#c9a24a" }, { n: "عصرية النخل", sky: "#f4a261", ground: "#b5793a" }, { n: "ليلة الصرام", sky: "#1b2a4a", ground: "#5a4320", night: true }];
   const dates = {
-    id: "dates", console: "atari", name: "مطر التمر", emoji: "🌴", color: "#a0522d", pad: "lr-a",
+    id: "dates", console: "atari", name: "مطر التمر", emoji: "🌴", color: "#a0522d", pad: "lr",
     desc: "قرد شقي فوق النخل يرمي تمر! التقطه بالسلال قبل لا يطيح بالأرض، وكل تمرة تطيح تخسّرك سلة. من الموجة الثانية يرمي حجارة لا تلتقطها! والتمرة الذهبية بعشر أضعاف.",
     controls: "◀ ▶ أو اسحب بإصبعك لتحريك السلال",
     init() { this.wave = 1; this.score = 0; this.baskets = 3; this.x = 110; this.items = []; this.mx = 128; this.mdir = 1; this.newWave(); },
